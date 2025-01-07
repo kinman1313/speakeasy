@@ -1,5 +1,7 @@
-import { Box, Container } from '@mui/material';
-import { Outlet } from 'react-router-dom';
+import { Box, Container, AppBar, Toolbar, Typography, IconButton, Menu, MenuItem } from '@mui/material';
+import { AccountCircle } from '@mui/icons-material';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 function Layout({ children }) {
@@ -66,7 +68,7 @@ function Layout({ children }) {
                 </Toolbar>
             </AppBar>
             <Container component='main' sx={{ flexGrow: 1, py: 3 }}>
-                {children}
+                {children || <Outlet />}
             </Container>
         </Box>
     );
