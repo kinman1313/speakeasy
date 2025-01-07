@@ -2,7 +2,7 @@ services:
   - type: web
     name: chat-client
     env: node
-    buildCommand: cd client && npm install && npm run build
+    buildCommand: cd client && npm install --include=dev && npm run build
     startCommand: cd client && npm install -g serve && serve -s build
     envVars:
       - key: NODE_ENV
@@ -26,6 +26,10 @@ services:
       - key: REACT_APP_VERSION
         value: 1.0.0
     autoDeploy: true
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
 
   - type: web
     name: chat-server
@@ -47,4 +51,17 @@ services:
         sync: false
       - key: SMTP_PASS
         sync: false
-    autoDeploy: true 
+      - key: CLIENT_URL
+        fromService:
+          name: chat-client
+          type: web
+          property: url
+      - key: CORS_ORIGIN
+        fromService:
+          name: chat-client
+          type: web
+          property: url
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+    healthCheckPath: /api/health 

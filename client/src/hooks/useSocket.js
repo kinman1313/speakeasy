@@ -43,4 +43,4 @@ export function useSocket() {
     }, [user, token]);
 
     return { socket, isConnected };
-} 
+}

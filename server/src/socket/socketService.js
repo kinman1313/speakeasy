@@ -17,7 +17,9 @@ class SocketService {
                 origin: process.env.CLIENT_URL,
                 methods: ['GET', 'POST'],
                 credentials: true
-            }
+            },
+            transports: ['websocket'],
+            upgrade: false
         });
 
         // Authentication middleware

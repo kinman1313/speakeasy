@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-    AppBar,
-    Box,
-    Toolbar,
-    Typography,
-    IconButton,
-    Menu,
-    MenuItem,
-    Container
-} from '@mui/material';
+import { AppBar, Box, Toolbar, Typography, IconButton, Menu, MenuItem, Container } from '@mui/material';
 import { AccountCircle } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -39,24 +30,24 @@ function Layout({ children }) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <AppBar position="static">
+            <AppBar position='static'>
                 <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
                         Secure Chat
                     </Typography>
                     <div>
                         <IconButton
-                            size="large"
-                            aria-label="account of current user"
-                            aria-controls="menu-appbar"
-                            aria-haspopup="true"
+                            size='large'
+                            aria-label='account of current user'
+                            aria-controls='menu-appbar'
+                            aria-haspopup='true'
                             onClick={handleMenu}
-                            color="inherit"
+                            color='inherit'
                         >
                             <AccountCircle />
                         </IconButton>
                         <Menu
-                            id="menu-appbar"
+                            id='menu-appbar'
                             anchorEl={anchorEl}
                             anchorOrigin={{
                                 vertical: 'bottom',
@@ -70,19 +61,17 @@ function Layout({ children }) {
                             open={Boolean(anchorEl)}
                             onClose={handleClose}
                         >
-                            <MenuItem onClick={handleProfile}>
-                                Profile ({user?.username})
-                            </MenuItem>
+                            <MenuItem onClick={handleProfile}>Profile ({user?.username})</MenuItem>
                             <MenuItem onClick={handleLogout}>Logout</MenuItem>
                         </Menu>
                     </div>
                 </Toolbar>
             </AppBar>
-            <Container component="main" sx={{ flexGrow: 1, py: 3 }}>
+            <Container component='main' sx={{ flexGrow: 1, py: 3 }}>
                 {children}
             </Container>
         </Box>
     );
 }
 
-export default Layout; 
+export default Layout;
