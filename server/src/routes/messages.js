@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import messageService from '../services/messageService.js';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const messageService = require('../services/messageService');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
 
 // Validation middleware
 const validateMessage = [
@@ -221,4 +222,4 @@ router.delete('/:messageId/reactions', auth, async (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 

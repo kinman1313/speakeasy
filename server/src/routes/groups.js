@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import groupService from '../services/groupService.js';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const groupService = require('../services/groupService');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
 
 // Validation middleware
 const validateGroup = [
@@ -229,4 +230,4 @@ router.get('/search', auth, async (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 

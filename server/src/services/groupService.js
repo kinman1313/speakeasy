@@ -1,7 +1,7 @@
-const Group = require('../models/Group');
-const User = require('../models/User');
-const messageEncryptionService = require('./messageEncryptionService');
-const logger = require('../utils/logger');
+import Group from '../models/Group.js';
+import User from '../models/User.js';
+import messageEncryptionService from './messageEncryptionService.js';
+import logger from '../utils/logger.js';
 
 class GroupService {
     // Create new group
@@ -345,4 +345,4 @@ class GroupService {
 // Create singleton instance
 const groupService = new GroupService();
 
-module.exports = groupService; 
+export default groupService; 
