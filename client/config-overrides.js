@@ -37,8 +37,17 @@ module.exports = function override(config) {
                 default:
                     break;
             }
+        }),
+        new webpack.NormalModuleReplacementPlugin(/^node-gyp-build$/, (resource) => {
+            resource.request = 'node-gyp-build/build.js';
         })
     ]);
+
+    // Ignore native addons
+    config.externals = {
+        ...config.externals,
+        'node-gyp-build': 'node-gyp-build'
+    };
 
     config.resolve.extensions = [...(config.resolve.extensions || []), '.js', '.jsx'];
     config.resolve.mainFields = ['browser', 'module', 'main'];

@@ -1,6 +1,6 @@
-const SignalClient = require('@signalapp/libsignal-client');
+import SignalClient from '@signalapp/libsignal-client';
 
-class SignalProtocolStore {
+export class SignalProtocolStore {
     constructor() {
         this.store = {
             identityKeys: new Map(),
@@ -122,4 +122,4 @@ class SignalProtocolStore {
     }
 }
 
-module.exports = SignalProtocolStore; 
+export default SignalProtocolStore; 

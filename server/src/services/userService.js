@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
-class UserService {
+export class UserService {
     // User registration
     async register(userData) {
         try {
@@ -379,5 +379,4 @@ class UserService {
     }
 }
 
-const userService = new UserService();
-export default userService; 
+export default new UserService(); 

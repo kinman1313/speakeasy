@@ -2,7 +2,7 @@ import signalProtocolManager from '../encryption/signalProtocol.js';
 import SignalProtocolStore from '../encryption/signalStore.js';
 import logger from '../utils/logger.js';
 
-class MessageEncryptionService {
+export class MessageEncryptionService {
     constructor() {
         this.protocolStore = new SignalProtocolStore();
     }
@@ -155,5 +155,4 @@ class MessageEncryptionService {
     }
 }
 
-const messageEncryptionService = new MessageEncryptionService();
-export default messageEncryptionService; 
+export default new MessageEncryptionService(); 

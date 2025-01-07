@@ -1,7 +1,7 @@
-const SignalClient = require('@signalapp/libsignal-client');
-const crypto = require('crypto');
+import SignalClient from '@signalapp/libsignal-client';
+import crypto from 'crypto';
 
-class SignalProtocolManager {
+export class SignalProtocolManager {
     constructor() {
         this.sessions = new Map();
         this.preKeyBundles = new Map();
@@ -115,7 +115,4 @@ class SignalProtocolManager {
     }
 }
 
-// Create a singleton instance
-const signalProtocolManager = new SignalProtocolManager();
-
-module.exports = signalProtocolManager; 
+export default new SignalProtocolManager(); 
