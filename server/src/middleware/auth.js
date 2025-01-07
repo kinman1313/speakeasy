@@ -1,6 +1,7 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const logger = require('../utils/logger');
+import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
+import User from '../models/User.js';
+import logger from '../utils/logger.js';
 
 const auth = async (req, res, next) => {
     try {
@@ -107,9 +108,7 @@ const adminAuth = async (req, res, next) => {
 };
 
 // Rate limiting middleware
-const rateLimit = require('express-rate-limit');
-
-const authLimiter = rateLimit({
+export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later',
@@ -117,7 +116,7 @@ const authLimiter = rateLimit({
     legacyHeaders: false
 });
 
-const createAccountLimiter = rateLimit({
+export const createAccountLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5, // Limit each IP to 5 create account requests per hour
     message: 'Too many accounts created from this IP, please try again after an hour',
@@ -125,10 +124,4 @@ const createAccountLimiter = rateLimit({
     legacyHeaders: false
 });
 
-module.exports = {
-    auth,
-    optionalAuth,
-    adminAuth,
-    authLimiter,
-    createAccountLimiter
-}; 
+export { auth, optionalAuth, adminAuth }; 

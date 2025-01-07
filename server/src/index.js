@@ -15,6 +15,7 @@ import { authLimiter } from './middleware/auth.js';
 import userRoutes from './routes/users.js';
 import messageRoutes from './routes/messages.js';
 import groupRoutes from './routes/groups.js';
+import giphyRoutes from './routes/giphy.js';
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use('/api/auth', authLimiter);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/giphy', giphyRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

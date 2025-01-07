@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import { auth } from '../middleware/auth.js';
+import userService from '../services/userService.js';
+import logger from '../utils/logger.js';
+
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const userService = require('../services/userService');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
 
 // Validation middleware
 const validateRegistration = [
@@ -285,4 +286,4 @@ router.post('/unblock/:userId', auth, async (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 
