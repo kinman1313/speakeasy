@@ -1,20 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const compression = require('compression');
-const helmet = require('helmet');
-const http = require('http');
-const socketService = require('./socket/socketService');
-const messageEncryptionService = require('./services/messageEncryptionService');
-const logger = require('./utils/logger');
-const { notFound, errorHandler } = require('./middleware/error');
-const { authLimiter } = require('./middleware/auth');
+import dotenv from 'dotenv';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import compression from 'compression';
+import helmet from 'helmet';
+import http from 'http';
+import socketService from './socket/socketService.js';
+import messageEncryptionService from './services/messageEncryptionService.js';
+import logger from './utils/logger.js';
+import { notFound, errorHandler } from './middleware/error.js';
+import { authLimiter } from './middleware/auth.js';
 
 // Import routes
-const userRoutes = require('./routes/users');
-const messageRoutes = require('./routes/messages');
-const groupRoutes = require('./routes/groups');
+import userRoutes from './routes/users.js';
+import messageRoutes from './routes/messages.js';
+import groupRoutes from './routes/groups.js';
+
+dotenv.config();
 
 // Create Express app
 const app = express();
@@ -39,9 +41,7 @@ socketService.initialize(server);
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false
+    useUnifiedTopology: true
 })
     .then(() => {
         logger.info('Connected to MongoDB');
@@ -116,4 +116,4 @@ process.on('SIGTERM', () => {
     });
 });
 
-module.exports = server; 
+export default server; 

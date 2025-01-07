@@ -11,14 +11,12 @@ services:
         fromService:
           name: chat-server
           type: web
-          property: url
-          envVarKey: REACT_APP_API_URL
+          property: hostport
       - key: REACT_APP_SOCKET_URL
         fromService:
           name: chat-server
           type: web
-          property: url
-          envVarKey: REACT_APP_SOCKET_URL
+          property: host
       - key: REACT_APP_NAME
         value: Signal Chat
       - key: REACT_APP_DESCRIPTION
@@ -26,16 +24,12 @@ services:
       - key: REACT_APP_VERSION
         value: 1.0.0
     autoDeploy: true
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-store
 
   - type: web
     name: chat-server
     env: node
     buildCommand: cd server && npm install
-    startCommand: cd server && npm start
+    startCommand: cd server && NODE_OPTIONS='--experimental-specifier-resolution=node' npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -55,12 +49,12 @@ services:
         fromService:
           name: chat-client
           type: web
-          property: url
+          property: host
       - key: CORS_ORIGIN
         fromService:
           name: chat-client
           type: web
-          property: url
+          property: host
       - key: PORT
         value: 10000
     autoDeploy: true
