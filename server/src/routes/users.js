@@ -1,5 +1,6 @@
 import express from 'express';
-import { body, validationResult } from 'express-validator';
+import expressValidator from 'express-validator';
+const { body, validationResult } = expressValidator;
 import { auth } from '../middleware/auth.js';
 import userService from '../services/userService.js';
 import logger from '../utils/logger.js';

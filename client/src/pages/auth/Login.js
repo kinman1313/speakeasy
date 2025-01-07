@@ -1,15 +1,7 @@
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import {
-    Container,
-    Box,
-    Typography,
-    TextField,
-    Button,
-    Link,
-    Paper
-} from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
+import { Container, Box, Typography, TextField, Button, Link, Paper } from '@mui/material';
 
 function Login() {
     const navigate = useNavigate();
@@ -33,7 +25,7 @@ function Login() {
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth='sm'>
             <Box
                 sx={{
                     marginTop: 8,
@@ -52,54 +44,44 @@ function Login() {
                         width: '100%'
                     }}
                 >
-                    <Typography component="h1" variant="h5">
+                    <Typography component='h1' variant='h5'>
                         Sign in
                     </Typography>
-                    <Box
-                        component="form"
-                        onSubmit={handleSubmit}
-                        sx={{ mt: 3, width: '100%' }}
-                    >
+                    <Box component='form' onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
+                            id='email'
+                            label='Email Address'
+                            name='email'
+                            autoComplete='email'
                             autoFocus
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
+                            name='password'
+                            label='Password'
+                            type='password'
+                            id='password'
+                            autoComplete='current-password'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                            disabled={loading}
-                        >
+                        <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }} disabled={loading}>
                             {loading ? 'Signing in...' : 'Sign In'}
                         </Button>
                         <Box sx={{ textAlign: 'center' }}>
-                            <Link component={RouterLink} to="/reset-password" variant="body2">
+                            <Link component={RouterLink} to='/reset-password' variant='body2'>
                                 Forgot password?
                             </Link>
                         </Box>
                         <Box sx={{ mt: 2, textAlign: 'center' }}>
-                            <Link component={RouterLink} to="/register" variant="body2">
+                            <Link component={RouterLink} to='/register' variant='body2'>
                                 {"Don't have an account? Sign Up"}
                             </Link>
                         </Box>
@@ -110,4 +92,4 @@ function Login() {
     );
 }
 
-export default Login; 
+export default Login;

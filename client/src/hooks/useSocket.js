@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useAuth } from './useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
 export function useSocket() {
     const [socket, setSocket] = useState(null);

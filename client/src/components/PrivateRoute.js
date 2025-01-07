@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 
 function PrivateRoute({ children }) {
@@ -20,7 +20,7 @@ function PrivateRoute({ children }) {
         );
     }
 
-    return user ? children : <Navigate to="/login" replace />;
+    return user ? children : <Navigate to='/login' replace />;
 }
 
 export default PrivateRoute;

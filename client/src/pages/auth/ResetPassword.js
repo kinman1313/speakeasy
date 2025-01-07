@@ -1,15 +1,7 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import {
-    Container,
-    Box,
-    Typography,
-    TextField,
-    Button,
-    Link,
-    Paper
-} from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Container, Box, Typography, TextField, Button, Link, Paper } from '@mui/material';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ResetPassword() {
     const { resetPassword } = useAuth();
@@ -41,7 +33,7 @@ function ResetPassword() {
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth='sm'>
             <Box
                 sx={{
                     marginTop: 8,
@@ -60,56 +52,45 @@ function ResetPassword() {
                         width: '100%'
                     }}
                 >
-                    <Typography component="h1" variant="h5">
+                    <Typography component='h1' variant='h5'>
                         Reset Password
                     </Typography>
                     {success ? (
                         <Box sx={{ mt: 3, textAlign: 'center' }}>
-                            <Typography variant="body1" sx={{ mb: 2 }}>
+                            <Typography variant='body1' sx={{ mb: 2 }}>
                                 Password reset instructions have been sent to your email.
                             </Typography>
-                            <Link component={RouterLink} to="/login" variant="body2">
+                            <Link component={RouterLink} to='/login' variant='body2'>
                                 Return to Sign In
                             </Link>
                         </Box>
                     ) : (
-                        <Box
-                            component="form"
-                            onSubmit={handleSubmit}
-                            sx={{ mt: 3, width: '100%' }}
-                        >
-                            <Typography variant="body2" sx={{ mb: 3 }}>
-                                Enter your email address and we'll send you instructions to reset your
-                                password.
-                            </Typography>
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                id="email"
-                                label="Email Address"
-                                name="email"
-                                autoComplete="email"
-                                autoFocus
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                            {error && (
-                                <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-                                    {error}
+                            <Box component='form' onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
+                                <Typography variant='body2' sx={{ mb: 3 }}>
+                                    Enter your email address and we'll send you instructions to reset your password.
                                 </Typography>
-                            )}
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
-                                disabled={loading}
-                            >
-                                {loading ? 'Sending...' : 'Reset Password'}
-                            </Button>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Link component={RouterLink} to="/login" variant="body2">
+                                <TextField
+                                    margin='normal'
+                                    required
+                                    fullWidth
+                                    id='email'
+                                    label='Email Address'
+                                    name='email'
+                                    autoComplete='email'
+                                    autoFocus
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                                {error && (
+                                    <Typography color='error' variant='body2' sx={{ mt: 2 }}>
+                                        {error}
+                                    </Typography>
+                                )}
+                                <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }} disabled={loading}>
+                                    {loading ? 'Sending...' : 'Reset Password'}
+                                </Button>
+                                <Box sx={{ textAlign: 'center' }}>
+                                <Link component={RouterLink} to='/login' variant='body2'>
                                     Back to Sign In
                                 </Link>
                             </Box>
@@ -121,4 +102,4 @@ function ResetPassword() {
     );
 }
 
-export default ResetPassword; 
+export default ResetPassword;

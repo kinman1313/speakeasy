@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { AppBar, Box, Toolbar, Typography, IconButton, Menu, MenuItem, Container } from '@mui/material';
-import { AccountCircle } from '@mui/icons-material';
-import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { Box, Container } from '@mui/material';
+import { Outlet } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function Layout({ children }) {
     const { user, logout } = useAuth();

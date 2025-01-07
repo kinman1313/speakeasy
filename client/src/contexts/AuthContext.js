@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         const initializeAuth = async () => {
             const storedToken = localStorage.getItem('token');
             if (storedToken) {
-        try {
+                try {
                     const response = await authAPI.getProfile();
                     setUser(response.data);
                 } catch (error) {
@@ -80,11 +80,5 @@ export const AuthProvider = ({ children }) => {
         return null; // or a loading spinner
     }
 
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export default AuthContext; 

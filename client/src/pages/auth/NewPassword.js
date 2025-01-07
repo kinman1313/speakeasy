@@ -13,7 +13,7 @@ import {
     IconButton
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 function NewPassword() {
     const { token } = useParams();

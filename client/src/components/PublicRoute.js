@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import LoadingScreen from './LoadingScreen';
 
 function PublicRoute({ children }) {
@@ -18,4 +18,4 @@ function PublicRoute({ children }) {
     return children;
 }
 
-export default PublicRoute; 
+export default PublicRoute;

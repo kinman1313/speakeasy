@@ -18,26 +18,26 @@ function App() {
                 <AuthProvider>
                     <Router>
                         <Routes>
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/reset-password" element={<ResetPassword />} />
-                            <Route
-                                path="/"
-                                element={
-                                    <PrivateRoute>
-                                        <Layout>
-                                            <Chat />
-                                        </Layout>
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
-                    </Router>
-                </AuthProvider>
-            </SnackbarProvider>
-        </ThemeProvider>
-    );
+                          <Route path='/login' element={<Login />} />
+                          <Route path='/register' element={<Register />} />
+                          <Route path='/reset-password' element={<ResetPassword />} />
+                          <Route
+                              path='/'
+                              element={
+                                  <PrivateRoute>
+                                      <Layout>
+                                          <Chat />
+                                      </Layout>
+                                  </PrivateRoute>
+                              }
+                          />
+                          <Route path='*' element={<Navigate to='/' replace />} />
+                      </Routes>
+                  </Router>
+              </AuthProvider>
+          </SnackbarProvider>
+      </ThemeProvider>
+  );
 }
 
-export default App; 
+export default App;

@@ -13,7 +13,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../hooks/useSocket';
 import { useSignal } from '../../hooks/useSignal';
 import { useSnackbar } from '../../hooks/useSnackbar';

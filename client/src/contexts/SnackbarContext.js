@@ -38,4 +38,4 @@ export function SnackbarProvider({ children }) {
             </Snackbar>
         </SnackbarContext.Provider>
     );
-} 
+}

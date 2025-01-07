@@ -1,15 +1,7 @@
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import {
-    Container,
-    Box,
-    Typography,
-    TextField,
-    Button,
-    Link,
-    Paper
-} from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
+import { Container, Box, Typography, TextField, Button, Link, Paper } from '@mui/material';
 
 function Register() {
     const navigate = useNavigate();
@@ -57,7 +49,7 @@ function Register() {
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth='sm'>
             <Box
                 sx={{
                     marginTop: 8,
@@ -76,76 +68,66 @@ function Register() {
                         width: '100%'
                     }}
                 >
-                    <Typography component="h1" variant="h5">
+                    <Typography component='h1' variant='h5'>
                         Create Account
                     </Typography>
-                    <Box
-                        component="form"
-                        onSubmit={handleSubmit}
-                        sx={{ mt: 3, width: '100%' }}
-                    >
+                    <Box component='form' onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            id="username"
-                            label="Username"
-                            name="username"
-                            autoComplete="username"
+                            id='username'
+                            label='Username'
+                            name='username'
+                            autoComplete='username'
                             autoFocus
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
+                            id='email'
+                            label='Email Address'
+                            name='email'
+                            autoComplete='email'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="new-password"
+                            name='password'
+                            label='Password'
+                            type='password'
+                            id='password'
+                            autoComplete='new-password'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <TextField
-                            margin="normal"
+                            margin='normal'
                             required
                             fullWidth
-                            name="confirmPassword"
-                            label="Confirm Password"
-                            type="password"
-                            id="confirmPassword"
+                            name='confirmPassword'
+                            label='Confirm Password'
+                            type='password'
+                            id='confirmPassword'
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
                         {error && (
-                            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+                            <Typography color='error' variant='body2' sx={{ mt: 2 }}>
                                 {error}
                             </Typography>
                         )}
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                            disabled={loading}
-                        >
+                        <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }} disabled={loading}>
                             {loading ? 'Creating Account...' : 'Create Account'}
                         </Button>
                         <Box sx={{ textAlign: 'center' }}>
-                            <Link component={RouterLink} to="/login" variant="body2">
+                            <Link component={RouterLink} to='/login' variant='body2'>
                                 Already have an account? Sign in
                             </Link>
                         </Box>
@@ -156,4 +138,4 @@ function Register() {
     );
 }
 
-export default Register; 
+export default Register;
