@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -64,7 +64,6 @@ const userSchema = new mongoose.Schema({
     verificationTokenExpires: Date,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    // Signal Protocol related fields
     identityKey: {
         type: String,
         select: false
@@ -94,7 +93,6 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         return next();
     }
-
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
@@ -104,97 +102,83 @@ userSchema.pre('save', async function (next) {
     }
 });
 
-// Method to check password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
+// Instance methods
+userSchema.methods = {
+    async matchPassword(enteredPassword) {
+        return await bcrypt.compare(enteredPassword, this.password);
+    },
 
-// Generate JWT token
-userSchema.methods.generateAuthToken = function () {
-    return jwt.sign(
-        { id: this._id },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRE }
-    );
-};
+    generateAuthToken() {
+        return jwt.sign(
+            { id: this._id },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRE }
+        );
+    },
 
-// Generate verification token
-userSchema.methods.generateVerificationToken = function () {
-    const token = crypto.randomBytes(32).toString('hex');
+    generateVerificationToken() {
+        const token = crypto.randomBytes(32).toString('hex');
+        this.verificationToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        this.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+        return token;
+    },
 
-    this.verificationToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
+    generateResetPasswordToken() {
+        const token = crypto.randomBytes(32).toString('hex');
+        this.resetPasswordToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        this.resetPasswordExpires = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+        return token;
+    },
 
-    this.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    async updateSignalKeys(identityKey, signedPreKey, oneTimePreKeys, registrationId) {
+        this.identityKey = identityKey;
+        this.signedPreKey = signedPreKey;
+        this.oneTimePreKeys = oneTimePreKeys;
+        this.registrationId = registrationId;
+        await this.save();
+    },
 
-    return token;
-};
+    getOneTimePreKey() {
+        if (this.oneTimePreKeys.length === 0) {
+            return null;
+        }
+        const preKey = this.oneTimePreKeys[0];
+        this.oneTimePreKeys = this.oneTimePreKeys.slice(1);
+        return preKey;
+    },
 
-// Generate password reset token
-userSchema.methods.generateResetPasswordToken = function () {
-    const token = crypto.randomBytes(32).toString('hex');
+    async addFriend(friendId) {
+        if (!this.friends.includes(friendId)) {
+            this.friends.push(friendId);
+            this.friendRequests = this.friendRequests.filter(id => id.toString() !== friendId.toString());
+            await this.save();
+        }
+    },
 
-    this.resetPasswordToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
+    async removeFriend(friendId) {
+        this.friends = this.friends.filter(id => id.toString() !== friendId.toString());
+        await this.save();
+    },
 
-    this.resetPasswordExpires = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+    async blockUser(userId) {
+        if (!this.blockedUsers.includes(userId)) {
+            this.blockedUsers.push(userId);
+            this.friends = this.friends.filter(id => id.toString() !== userId.toString());
+            this.friendRequests = this.friendRequests.filter(id => id.toString() !== userId.toString());
+            await this.save();
+        }
+    },
 
-    return token;
-};
-
-// Method to update Signal Protocol keys
-userSchema.methods.updateSignalKeys = async function (identityKey, signedPreKey, oneTimePreKeys, registrationId) {
-    this.identityKey = identityKey;
-    this.signedPreKey = signedPreKey;
-    this.oneTimePreKeys = oneTimePreKeys;
-    this.registrationId = registrationId;
-    await this.save();
-};
-
-// Method to get one-time pre-key
-userSchema.methods.getOneTimePreKey = function () {
-    if (this.oneTimePreKeys.length === 0) {
-        return null;
-    }
-
-    const preKey = this.oneTimePreKeys[0];
-    this.oneTimePreKeys = this.oneTimePreKeys.slice(1);
-    return preKey;
-};
-
-// Method to add friend
-userSchema.methods.addFriend = async function (friendId) {
-    if (!this.friends.includes(friendId)) {
-        this.friends.push(friendId);
-        this.friendRequests = this.friendRequests.filter(id => id.toString() !== friendId.toString());
+    async unblockUser(userId) {
+        this.blockedUsers = this.blockedUsers.filter(id => id.toString() !== userId.toString());
         await this.save();
     }
-};
-
-// Method to remove friend
-userSchema.methods.removeFriend = async function (friendId) {
-    this.friends = this.friends.filter(id => id.toString() !== friendId.toString());
-    await this.save();
-};
-
-// Method to block user
-userSchema.methods.blockUser = async function (userId) {
-    if (!this.blockedUsers.includes(userId)) {
-        this.blockedUsers.push(userId);
-        this.friends = this.friends.filter(id => id.toString() !== userId.toString());
-        this.friendRequests = this.friendRequests.filter(id => id.toString() !== userId.toString());
-        await this.save();
-    }
-};
-
-// Method to unblock user
-userSchema.methods.unblockUser = async function (userId) {
-    this.blockedUsers = this.blockedUsers.filter(id => id.toString() !== userId.toString());
-    await this.save();
 };
 
 // Create indexes
@@ -204,4 +188,4 @@ userSchema.index({ createdAt: 1 });
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = User; 
+export default User; 
