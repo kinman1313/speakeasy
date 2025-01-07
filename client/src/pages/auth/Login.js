@@ -1,56 +1,34 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Button,
     Container,
-    Link,
-    TextField,
+    Box,
     Typography,
-    Card,
-    CardContent,
-    InputAdornment,
-    IconButton
+    TextField,
+    Button,
+    Link,
+    Paper
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 
 function Login() {
-    const { login, error } = useAuth();
+    const navigate = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formErrors, setFormErrors] = useState({});
-
-    const validateForm = () => {
-        const errors = {};
-        if (!email) {
-            errors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            errors.email = 'Email is invalid';
-        }
-        if (!password) {
-            errors.password = 'Password is required';
-        }
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        setLoading(true);
 
-        setIsSubmitting(true);
         try {
             const success = await login(email, password);
-            if (!success) {
-                setFormErrors({ submit: 'Invalid email or password' });
+            if (success) {
+                navigate('/');
             }
-        } catch (err) {
-            setFormErrors({ submit: err.message });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -58,105 +36,75 @@ function Login() {
         <Container maxWidth="sm">
             <Box
                 sx={{
+                    marginTop: 8,
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '100vh'
+                    alignItems: 'center'
                 }}
             >
-                <Card sx={{ width: '100%', maxWidth: 'sm' }}>
-                    <CardContent sx={{ p: 4 }}>
-                        <Box sx={{ mb: 3, textAlign: 'center' }}>
-                            <Typography variant="h4" gutterBottom>
-                                Welcome back
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                Sign in to continue to {process.env.REACT_APP_NAME}
-                            </Typography>
+                <Paper
+                    elevation={3}
+                    sx={{
+                        padding: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%'
+                    }}
+                >
+                    <Typography component="h1" variant="h5">
+                        Sign in
+                    </Typography>
+                    <Box
+                        component="form"
+                        onSubmit={handleSubmit}
+                        sx={{ mt: 3, width: '100%' }}
+                    >
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="email"
+                            label="Email Address"
+                            name="email"
+                            autoComplete="email"
+                            autoFocus
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            name="password"
+                            label="Password"
+                            type="password"
+                            id="password"
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Link component={RouterLink} to="/reset-password" variant="body2">
+                                Forgot password?
+                            </Link>
                         </Box>
-
-                        <form onSubmit={handleSubmit}>
-                            <TextField
-                                fullWidth
-                                label="Email address"
-                                margin="normal"
-                                name="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                error={Boolean(formErrors.email)}
-                                helperText={formErrors.email}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                margin="normal"
-                                name="password"
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                error={Boolean(formErrors.password)}
-                                helperText={formErrors.password}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                edge="end"
-                                            >
-                                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
-                            />
-
-                            {(error || formErrors.submit) && (
-                                <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-                                    {error || formErrors.submit}
-                                </Typography>
-                            )}
-
-                            <Button
-                                fullWidth
-                                size="large"
-                                type="submit"
-                                variant="contained"
-                                sx={{ mt: 3 }}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Signing in...' : 'Sign in'}
-                            </Button>
-
-                            <Box sx={{ mt: 3, textAlign: 'center' }}>
-                                <Link
-                                    component={RouterLink}
-                                    to="/reset-password"
-                                    variant="body2"
-                                    sx={{ textDecoration: 'none' }}
-                                >
-                                    Forgot password?
-                                </Link>
-                            </Box>
-
-                            <Box sx={{ mt: 3, textAlign: 'center' }}>
-                                <Typography variant="body2">
-                                    Don't have an account?{' '}
-                                    <Link
-                                        component={RouterLink}
-                                        to="/register"
-                                        variant="body2"
-                                        sx={{ textDecoration: 'none' }}
-                                    >
-                                        Sign up
-                                    </Link>
-                                </Typography>
-                            </Box>
-                        </form>
-                    </CardContent>
-                </Card>
+                        <Box sx={{ mt: 2, textAlign: 'center' }}>
+                            <Link component={RouterLink} to="/register" variant="body2">
+                                {"Don't have an account? Sign Up"}
+                            </Link>
+                        </Box>
+                    </Box>
+                </Paper>
             </Box>
         </Container>
     );

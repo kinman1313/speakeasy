@@ -1,88 +1,58 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Button,
     Container,
-    Link,
-    TextField,
+    Box,
     Typography,
-    Card,
-    CardContent,
-    InputAdornment,
-    IconButton
+    TextField,
+    Button,
+    Link,
+    Paper
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 
 function Register() {
-    const { register, error } = useAuth();
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [showPassword, setShowPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formErrors, setFormErrors] = useState({});
+    const navigate = useNavigate();
+    const { register } = useAuth();
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const validateForm = () => {
-        const errors = {};
-        if (!formData.username) {
-            errors.username = 'Username is required';
-        } else if (formData.username.length < 3) {
-            errors.username = 'Username must be at least 3 characters';
+        if (!username || !email || !password || !confirmPassword) {
+            setError('All fields are required');
+            return false;
         }
-
-        if (!formData.email) {
-            errors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            errors.email = 'Email is invalid';
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return false;
         }
-
-        if (!formData.password) {
-            errors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            errors.password = 'Password must be at least 6 characters';
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters long');
+            return false;
         }
-
-        if (!formData.confirmPassword) {
-            errors.confirmPassword = 'Please confirm your password';
-        } else if (formData.password !== formData.confirmPassword) {
-            errors.confirmPassword = 'Passwords do not match';
-        }
-
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
 
-        setIsSubmitting(true);
+        setLoading(true);
+        setError('');
+
         try {
-            const success = await register({
-                username: formData.username,
-                email: formData.email,
-                password: formData.password
-            });
-            if (!success) {
-                setFormErrors({ submit: 'Registration failed. Please try again.' });
+            const success = await register(username, email, password);
+            if (success) {
+                navigate('/');
             }
         } catch (err) {
-            setFormErrors({ submit: err.message });
+            setError(err.message);
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -90,117 +60,97 @@ function Register() {
         <Container maxWidth="sm">
             <Box
                 sx={{
+                    marginTop: 8,
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '100vh'
+                    alignItems: 'center'
                 }}
             >
-                <Card sx={{ width: '100%', maxWidth: 'sm' }}>
-                    <CardContent sx={{ p: 4 }}>
-                        <Box sx={{ mb: 3, textAlign: 'center' }}>
-                            <Typography variant="h4" gutterBottom>
-                                Create an account
+                <Paper
+                    elevation={3}
+                    sx={{
+                        padding: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%'
+                    }}
+                >
+                    <Typography component="h1" variant="h5">
+                        Create Account
+                    </Typography>
+                    <Box
+                        component="form"
+                        onSubmit={handleSubmit}
+                        sx={{ mt: 3, width: '100%' }}
+                    >
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="username"
+                            label="Username"
+                            name="username"
+                            autoComplete="username"
+                            autoFocus
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="email"
+                            label="Email Address"
+                            name="email"
+                            autoComplete="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            name="password"
+                            label="Password"
+                            type="password"
+                            id="password"
+                            autoComplete="new-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            name="confirmPassword"
+                            label="Confirm Password"
+                            type="password"
+                            id="confirmPassword"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        {error && (
+                            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+                                {error}
                             </Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                Sign up to join {process.env.REACT_APP_NAME}
-                            </Typography>
+                        )}
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </Button>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Link component={RouterLink} to="/login" variant="body2">
+                                Already have an account? Sign in
+                            </Link>
                         </Box>
-
-                        <form onSubmit={handleSubmit}>
-                            <TextField
-                                fullWidth
-                                label="Username"
-                                margin="normal"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleChange}
-                                error={Boolean(formErrors.username)}
-                                helperText={formErrors.username}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Email address"
-                                margin="normal"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                error={Boolean(formErrors.email)}
-                                helperText={formErrors.email}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                margin="normal"
-                                name="password"
-                                type={showPassword ? 'text' : 'password'}
-                                value={formData.password}
-                                onChange={handleChange}
-                                error={Boolean(formErrors.password)}
-                                helperText={formErrors.password}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                edge="end"
-                                            >
-                                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Confirm Password"
-                                margin="normal"
-                                name="confirmPassword"
-                                type={showPassword ? 'text' : 'password'}
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                error={Boolean(formErrors.confirmPassword)}
-                                helperText={formErrors.confirmPassword}
-                            />
-
-                            {(error || formErrors.submit) && (
-                                <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-                                    {error || formErrors.submit}
-                                </Typography>
-                            )}
-
-                            <Button
-                                fullWidth
-                                size="large"
-                                type="submit"
-                                variant="contained"
-                                sx={{ mt: 3 }}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Creating account...' : 'Create account'}
-                            </Button>
-
-                            <Box sx={{ mt: 3, textAlign: 'center' }}>
-                                <Typography variant="body2">
-                                    Already have an account?{' '}
-                                    <Link
-                                        component={RouterLink}
-                                        to="/login"
-                                        variant="body2"
-                                        sx={{ textDecoration: 'none' }}
-                                    >
-                                        Sign in
-                                    </Link>
-                                </Typography>
-                            </Box>
-                        </form>
-                    </CardContent>
-                </Card>
+                    </Box>
+                </Paper>
             </Box>
         </Container>
     );

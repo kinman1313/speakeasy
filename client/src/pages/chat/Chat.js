@@ -15,10 +15,14 @@ import {
 import { Send as SendIcon } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
+import { useSignal } from '../../hooks/useSignal';
+import { useSnackbar } from '../../hooks/useSnackbar';
 
 function Chat() {
     const { user } = useAuth();
     const { socket, isConnected } = useSocket();
+    const { encryptMessage, decryptMessage } = useSignal();
+    const { showSnackbar } = useSnackbar();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -32,36 +36,70 @@ function Chat() {
         if (!socket) return;
 
         // Load recent messages
-        socket.emit('getRecentMessages', {}, (response) => {
+        socket.emit('getRecentMessages', {}, async (response) => {
             if (response.success) {
-                setMessages(response.messages);
+                try {
+                    // Decrypt messages
+                    const decryptedMessages = await Promise.all(
+                        response.messages.map(async (msg) => {
+                            if (msg.userId !== user.id) {
+                                const decrypted = await decryptMessage(msg.userId, msg.content);
+                                return { ...msg, content: decrypted };
+                            }
+                            return msg;
+                        })
+                    );
+                    setMessages(decryptedMessages);
+                } catch (error) {
+                    console.error('Error decrypting messages:', error);
+                    showSnackbar('Error loading messages', 'error');
+                }
             }
             setIsLoading(false);
         });
 
         // Listen for new messages
-        socket.on('newMessage', (message) => {
-            setMessages((prev) => [...prev, message]);
+        socket.on('newMessage', async (message) => {
+            try {
+                if (message.userId !== user.id) {
+                    const decrypted = await decryptMessage(message.userId, message.content);
+                    message.content = decrypted;
+                }
+                setMessages((prev) => [...prev, message]);
+            } catch (error) {
+                console.error('Error decrypting message:', error);
+                showSnackbar('Error decrypting message', 'error');
+            }
         });
 
         return () => {
             socket.off('newMessage');
         };
-    }, [socket]);
+    }, [socket, user.id, decryptMessage, showSnackbar]);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!message.trim() || !socket) return;
 
-        socket.emit('sendMessage', { content: message.trim() }, (response) => {
-            if (response.success) {
-                setMessage('');
-            }
-        });
+        try {
+            // Encrypt message for each recipient
+            const encryptedContent = await encryptMessage('broadcast', message.trim());
+
+            socket.emit('sendMessage', { content: encryptedContent }, (response) => {
+                if (response.success) {
+                    setMessage('');
+                } else {
+                    showSnackbar('Failed to send message', 'error');
+                }
+            });
+        } catch (error) {
+            console.error('Error sending message:', error);
+            showSnackbar('Error sending message', 'error');
+        }
     };
 
     if (!isConnected) {
@@ -92,7 +130,10 @@ function Chat() {
                 }}
             >
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                    <Typography variant="h6">Open Chat Lobby</Typography>
+                    <Typography variant="h6">Secure Chat Room</Typography>
+                    <Typography variant="caption" color="textSecondary">
+                        End-to-end encrypted with Signal Protocol
+                    </Typography>
                 </Box>
 
                 <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>

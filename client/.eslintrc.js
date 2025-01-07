@@ -3,8 +3,8 @@ module.exports = {
     env: {
         browser: true,
         es2021: true,
-        jest: true,
-        node: true
+        node: true,
+        jest: true
     },
     extends: [
         'eslint:recommended',
@@ -19,20 +19,14 @@ module.exports = {
         ecmaVersion: 'latest',
         sourceType: 'module'
     },
-    plugins: ['react'],
+    plugins: ['react', 'prettier'],
     rules: {
-        'react/react-in-jsx-scope': 'off',
+        'prettier/prettier': 'error',
         'react/prop-types': 'off',
-        'no-unused-vars': ['warn', {
-            argsIgnorePattern: '^_',
-            varsIgnorePattern: '^_'
-        }],
-        'prettier/prettier': ['error', {
-            'endOfLine': 'auto'
-        }],
-        'no-console': 'warn',
-        'react/display-name': 'off',
-        'react/no-unescaped-entities': 'off'
+        'react/jsx-uses-react': 'off',
+        'react/react-in-jsx-scope': 'off',
+        'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+        'no-console': ['warn', { allow: ['warn', 'error'] }]
     },
     settings: {
         react: {
