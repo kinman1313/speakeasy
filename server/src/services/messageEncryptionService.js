@@ -1,6 +1,6 @@
-const signalProtocolManager = require('../encryption/signalProtocol');
-const SignalProtocolStore = require('../encryption/signalStore');
-const logger = require('../utils/logger');
+import signalProtocolManager from '../encryption/signalProtocol.js';
+import SignalProtocolStore from '../encryption/signalStore.js';
+import logger from '../utils/logger.js';
 
 class MessageEncryptionService {
     constructor() {
@@ -155,7 +155,5 @@ class MessageEncryptionService {
     }
 }
 
-// Create a singleton instance
 const messageEncryptionService = new MessageEncryptionService();
-
-module.exports = messageEncryptionService; 
+export default messageEncryptionService; 

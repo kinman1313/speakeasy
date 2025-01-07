@@ -1,9 +1,9 @@
-const User = require('../models/User');
-const messageEncryptionService = require('./messageEncryptionService');
-const logger = require('../utils/logger');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
+import User from '../models/User.js';
+import messageEncryptionService from './messageEncryptionService.js';
+import logger from '../utils/logger.js';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 class UserService {
     // User registration
@@ -379,7 +379,5 @@ class UserService {
     }
 }
 
-// Create singleton instance
 const userService = new UserService();
-
-module.exports = userService; 
+export default userService; 
