@@ -7,6 +7,24 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: REACT_APP_API_URL
+        fromService:
+          name: chat-server
+          type: web
+          property: url
+          envVarKey: REACT_APP_API_URL
+      - key: REACT_APP_SOCKET_URL
+        fromService:
+          name: chat-server
+          type: web
+          property: url
+          envVarKey: REACT_APP_SOCKET_URL
+      - key: REACT_APP_NAME
+        value: Signal Chat
+      - key: REACT_APP_DESCRIPTION
+        value: Secure messaging app with Signal Protocol end-to-end encryption
+      - key: REACT_APP_VERSION
+        value: 1.0.0
     autoDeploy: true
 
   - type: web
