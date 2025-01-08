@@ -15,77 +15,77 @@ const Settings = lazy(() => import('../pages/settings/Settings'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 function AppRoutes() {
-    return (
-        <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-                {/* Public Routes */}
-                <Route
-                    path="/login"
-                    element={
-                        <PublicRoute>
-                            <Login />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/register"
-                    element={
-                        <PublicRoute>
-                            <Register />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/reset-password"
-                    element={
-                        <PublicRoute>
-                            <ResetPassword />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/reset-password/:token"
-                    element={
-                        <PublicRoute>
-                            <NewPassword />
-                        </PublicRoute>
-                    }
-                />
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path='/login'
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path='/register'
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path='/reset-password'
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path='/reset-password/:token'
+          element={
+            <PublicRoute>
+              <NewPassword />
+            </PublicRoute>
+          }
+        />
 
-                {/* Protected Routes */}
-                <Route
-                    path="/chat/*"
-                    element={
-                        <PrivateRoute>
-                            <Chat />
-                        </PrivateRoute>
-                    }
-                />
-                <Route
-                    path="/profile"
-                    element={
-                        <PrivateRoute>
-                            <Profile />
-                        </PrivateRoute>
-                    }
-                />
-                <Route
-                    path="/settings"
-                    element={
-                        <PrivateRoute>
-                            <Settings />
-                        </PrivateRoute>
-                    }
-                />
+        {/* Protected Routes */}
+        <Route
+          path='/chat/*'
+          element={
+            <PrivateRoute>
+              <Chat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/profile'
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/settings'
+          element={
+            <PrivateRoute>
+              <Settings />
+            </PrivateRoute>
+          }
+        />
 
-                {/* Redirect root to chat or login */}
-                <Route path="/" element={<Navigate to="/chat" replace />} />
+        {/* Redirect root to chat or login */}
+        <Route path='/' element={<Navigate to='/chat' replace />} />
 
-                {/* 404 Not Found */}
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-        </Suspense>
-    );
+        {/* 404 Not Found */}
+        <Route path='*' element={<NotFound />} />
+      </Routes>
+    </Suspense>
+  );
 }
 
-export default AppRoutes; 
+export default AppRoutes;

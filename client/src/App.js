@@ -11,32 +11,32 @@ import ResetPassword from './pages/auth/ResetPassword';
 import Chat from './pages/chat/Chat';
 
 function App() {
-    return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <SnackbarProvider>
-                <AuthProvider>
-                    <Router>
-                        <Routes>
-                            <Route path='/login' element={<Login />} />
-                            <Route path='/register' element={<Register />} />
-                            <Route path='/reset-password' element={<ResetPassword />} />
-                            <Route
-                                path='/'
-                                element={
-                                    <PrivateRoute>
-                                        <Layout>
-                                            <Chat />
-                                        </Layout>
-                                    </PrivateRoute>
-                                }
-                            />
-                            <Route path='*' element={<Navigate to='/' replace />} />
-                        </Routes>
-                    </Router>
-                </AuthProvider>
-            </SnackbarProvider>
-        </ThemeProvider>
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <SnackbarProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path='/login' element={<Login />} />
+              <Route path='/register' element={<Register />} />
+              <Route path='/reset-password' element={<ResetPassword />} />
+              <Route
+                path='/'
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <Chat />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              <Route path='*' element={<Navigate to='/' replace />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 }
 

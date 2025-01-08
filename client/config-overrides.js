@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const path = require('path');
 
 module.exports = function override(config) {
     // Configure module resolution
@@ -8,7 +9,7 @@ module.exports = function override(config) {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
             buffer: require.resolve('buffer'),
-            process: require.resolve('process/browser'),
+            process: require.resolve('process/browser.js'),
             zlib: require.resolve('browserify-zlib'),
             path: require.resolve('path-browserify'),
             os: require.resolve('os-browserify/browser'),
@@ -20,25 +21,29 @@ module.exports = function override(config) {
             https: false
         },
         alias: {
+            process: path.resolve(__dirname, 'node_modules/process/browser.js'),
             '@signalapp/libsignal-client': '@signalapp/libsignal-client/dist/index.js'
-        }
+        },
+        modules: ['node_modules'],
+        extensions: ['.js', '.jsx', '.json', '.wasm']
     };
 
-    // Configure plugins with additional polyfills for Signal
+    // Configure plugins
     config.plugins = [
         ...config.plugins,
         new webpack.ProvidePlugin({
-            process: 'process/browser',
-            Buffer: ['buffer', 'Buffer'],
-            require: ['process/browser', 'require']
+            process: [path.resolve(__dirname, 'node_modules/process/browser.js'), 'process'],
+            Buffer: ['buffer', 'Buffer']
         }),
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-            'process.env.SIGNAL_ENABLE_WASM': JSON.stringify(true)
+            'process.env': {
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+                SIGNAL_ENABLE_WASM: JSON.stringify(true)
+            }
         })
     ];
 
-    // Configure module rules with specific handling for Signal's WASM
+    // Configure module rules
     config.module.rules = [
         ...config.module.rules,
         {
@@ -55,7 +60,7 @@ module.exports = function override(config) {
                             targets: {
                                 browsers: ['last 2 versions', 'not dead', 'not ie 11']
                             },
-                            modules: 'auto',
+                            modules: false,
                             useBuiltIns: 'usage',
                             corejs: 3
                         }]
@@ -83,6 +88,11 @@ module.exports = function override(config) {
         topLevelAwait: true,
         syncWebAssembly: true
     };
+
+    // Ensure proper source maps in development
+    if (process.env.NODE_ENV === 'development') {
+        config.devtool = 'eval-source-map';
+    }
 
     return config;
 }; 
