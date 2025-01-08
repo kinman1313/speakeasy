@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
     sender: {
@@ -206,4 +206,4 @@ messageSchema.statics.getMessagesBetweenUsers = async function (user1Id, user2Id
 
 const Message = mongoose.model('Message', messageSchema);
 
-module.exports = Message; 
+export default Message; 

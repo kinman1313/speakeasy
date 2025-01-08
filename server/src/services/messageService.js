@@ -1,8 +1,8 @@
-const Message = require('../models/Message');
-const User = require('../models/User');
-const Group = require('../models/Group');
-const messageEncryptionService = require('./messageEncryptionService');
-const logger = require('../utils/logger');
+import Message from '../models/Message.js';
+import User from '../models/User.js';
+import Group from '../models/Group.js';
+import messageEncryptionService from './messageEncryptionService.js';
+import logger from '../utils/logger.js';
 
 class MessageService {
     // Send direct message
@@ -360,4 +360,4 @@ class MessageService {
 // Create singleton instance
 const messageService = new MessageService();
 
-module.exports = messageService; 
+export default messageService; 
