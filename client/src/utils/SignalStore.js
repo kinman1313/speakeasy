@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 export class SignalProtocolStore {
   constructor() {
     this.store = {};
