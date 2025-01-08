@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import * as SignalProtocol from '@signalapp/libsignal-client';
+import SignalClient from '@signalapp/libsignal-client';
 import { SignalProtocolStore } from '../utils/SignalStore';
 import { useSnackbar } from './useSnackbar';
 
@@ -9,14 +9,31 @@ const store = new SignalProtocolStore();
 export function useSignal() {
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
+    const [signalClient, setSignalClient] = useState(null);
+
+    useEffect(() => {
+        const initSignal = async () => {
+            try {
+                // Load the WASM module
+                const signal = await SignalClient.load();
+                setSignalClient(signal);
+            } catch (error) {
+                console.error('Error initializing Signal client:', error);
+                showSnackbar('Error initializing encryption', 'error');
+            }
+        };
+        initSignal();
+    }, [showSnackbar]);
 
   const encryptMessage = useCallback(
     async (recipientId, message) => {
+          if (!signalClient) {
+              throw new Error('Signal client not initialized');
+          }
       try {
-        const sessionCipher = new window.libsignal.SessionCipher(store, recipientId);
-
-        const ciphertext = await sessionCipher.encrypt(new TextEncoder().encode(message));
-
+          const sessionBuilder = new signalClient.SessionBuilder(store, recipientId);
+          const sessionCipher = new signalClient.SessionCipher(store, recipientId);
+          const ciphertext = await sessionCipher.encrypt(new TextEncoder().encode(message));
         return window.btoa(JSON.stringify(ciphertext));
       } catch (error) {
         console.error('Error encrypting message:', error);
@@ -24,20 +41,21 @@ export function useSignal() {
         throw error;
       }
     },
-    [showSnackbar]
+      [signalClient, showSnackbar]
   );
 
   const decryptMessage = useCallback(
     async (senderId, encryptedMessage) => {
+          if (!signalClient) {
+              throw new Error('Signal client not initialized');
+          }
       try {
-        const sessionCipher = new window.libsignal.SessionCipher(store, senderId);
-
+          const sessionCipher = new signalClient.SessionCipher(store, senderId);
         const ciphertext = JSON.parse(window.atob(encryptedMessage));
         const decrypted = await sessionCipher.decryptPreKeyWhisperMessage(
           ciphertext.body,
           'binary'
         );
-
         return new TextDecoder().decode(decrypted);
       } catch (error) {
         console.error('Error decrypting message:', error);
@@ -45,13 +63,16 @@ export function useSignal() {
         throw error;
       }
     },
-    [showSnackbar]
+      [signalClient, showSnackbar]
   );
 
   const generatePreKey = useCallback(async () => {
+      if (!signalClient) {
+          throw new Error('Signal client not initialized');
+      }
     try {
       const keyId = Math.floor(Math.random() * 10000);
-      const keyPair = await window.libsignal.KeyHelper.generatePreKey(keyId);
+        const keyPair = await signalClient.KeyHelper.generatePreKey(keyId);
       await store.storePreKey(keyId, keyPair.keyPair);
       return {
         keyId: keyPair.keyId,
@@ -62,13 +83,16 @@ export function useSignal() {
       showSnackbar('Error generating encryption keys', 'error');
       throw error;
     }
-  }, [showSnackbar]);
+  }, [signalClient, showSnackbar]);
 
   const generateSignedPreKey = useCallback(
     async identityKeyPair => {
+          if (!signalClient) {
+              throw new Error('Signal client not initialized');
+          }
       try {
         const keyId = Math.floor(Math.random() * 10000);
-        const signedKeyPair = await window.libsignal.KeyHelper.generateSignedPreKey(
+          const signedKeyPair = await signalClient.KeyHelper.generateSignedPreKey(
           identityKeyPair,
           keyId
         );
@@ -84,12 +108,15 @@ export function useSignal() {
         throw error;
       }
     },
-    [showSnackbar]
+      [signalClient, showSnackbar]
   );
 
   const generateIdentityKeyPair = useCallback(async () => {
+      if (!signalClient) {
+          throw new Error('Signal client not initialized');
+      }
     try {
-      const identityKeyPair = await window.libsignal.KeyHelper.generateIdentityKeyPair();
+        const identityKeyPair = await signalClient.KeyHelper.generateIdentityKeyPair();
       await store.saveIdentity(user.id, identityKeyPair.pubKey);
       return identityKeyPair;
     } catch (error) {
@@ -97,11 +124,14 @@ export function useSignal() {
       showSnackbar('Error generating encryption keys', 'error');
       throw error;
     }
-  }, [user.id, showSnackbar]);
+  }, [signalClient, user.id, showSnackbar]);
 
   const generateRegistrationId = useCallback(async () => {
+      if (!signalClient) {
+          throw new Error('Signal client not initialized');
+      }
     try {
-      const registrationId = await window.libsignal.KeyHelper.generateRegistrationId();
+        const registrationId = await signalClient.KeyHelper.generateRegistrationId();
       await store.storeLocalRegistrationId(registrationId);
       return registrationId;
     } catch (error) {
@@ -109,7 +139,7 @@ export function useSignal() {
       showSnackbar('Error generating encryption keys', 'error');
       throw error;
     }
-  }, [showSnackbar]);
+  }, [signalClient, showSnackbar]);
 
   return {
     encryptMessage,
@@ -119,5 +149,6 @@ export function useSignal() {
     generateIdentityKeyPair,
     generateRegistrationId,
     store,
+      isInitialized: !!signalClient
   };
 }

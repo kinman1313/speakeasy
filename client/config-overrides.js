@@ -2,7 +2,6 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = function override(config) {
-    // Configure module resolution
     config.resolve = {
         ...config.resolve,
         fallback: {
@@ -22,85 +21,90 @@ module.exports = function override(config) {
             https: false
         },
         alias: {
-            process: path.resolve(__dirname, 'node_modules/process/browser.js'),
             '@signalapp/libsignal-client': '@signalapp/libsignal-client/dist/index.js'
         },
-        modules: ['node_modules'],
-        extensions: ['.js', '.jsx', '.json', '.wasm']
-    };
-
-    // Configure plugins
-    const definePluginConfig = {
-        'process.env': {
-            NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-            REACT_APP_API_URL: JSON.stringify(process.env.REACT_APP_API_URL),
-            REACT_APP_SOCKET_URL: JSON.stringify(process.env.REACT_APP_SOCKET_URL),
-            REACT_APP_NAME: JSON.stringify(process.env.REACT_APP_NAME),
-            REACT_APP_DESCRIPTION: JSON.stringify(process.env.REACT_APP_DESCRIPTION),
-            REACT_APP_VERSION: JSON.stringify(process.env.REACT_APP_VERSION),
-            SIGNAL_ENABLE_WASM: JSON.stringify(true)
-        }
+        extensions: ['.js', '.jsx', '.json', '.wasm'],
+        fallbackCdnUrl: 'https://cdn.jsdelivr.net/npm/@signalapp/libsignal-client/dist/'
     };
 
     config.plugins = [
         ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
-            process: [path.resolve(__dirname, 'node_modules/process/browser.js'), 'process'],
-            Buffer: ['buffer', 'Buffer']
+            Buffer: ['buffer', 'Buffer'],
+            process: 'process/browser.js'
         }),
-        new webpack.DefinePlugin(definePluginConfig)
-    ];
-
-    // Configure module rules
-    config.module.rules = [
-        ...config.module.rules,
-        {
-            test: /\.m?js$/,
-            resolve: {
-                fullySpecified: false
-            },
-            exclude: /node_modules\/(?!(@signalapp)\/).*/,
-            use: {
-                loader: 'babel-loader',
-                options: {
-                    presets: [
-                        ['@babel/preset-env', {
-                            targets: {
-                                browsers: ['last 2 versions', 'not dead', 'not ie 11']
-                            },
-                            modules: false,
-                            useBuiltIns: 'usage',
-                            corejs: 3
-                        }]
-                    ],
-                    plugins: [
-                        '@babel/plugin-syntax-dynamic-import',
-                        '@babel/plugin-proposal-class-properties'
-                    ]
+        new webpack.DefinePlugin({
+            'process.env': JSON.stringify({
+                ...process.env,
+                NODE_ENV: process.env.NODE_ENV || 'development'
+            }),
+            'global.TYPED_ARRAY_SUPPORT': JSON.stringify(true)
+        }),
+        new webpack.NormalModuleReplacementPlugin(
+            /node:crypto/,
+            require.resolve('crypto-browserify')
+        ),
+        new webpack.LoaderOptionsPlugin({
+            options: {
+                resolve: {
+                    fallback: {
+                        "crypto": require.resolve("crypto-browserify"),
+                        "stream": require.resolve("stream-browserify"),
+                        "buffer": require.resolve("buffer/")
+                    }
                 }
             }
-        },
-        {
-            test: /\.wasm$/,
-            type: 'webassembly/async',
-            use: {
-                loader: 'wasm-loader'
-            }
-        }
+        })
     ];
 
-    // Configure experiments for WebAssembly
+    config.module = {
+        ...config.module,
+        rules: [
+            ...config.module.rules,
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false
+                },
+                exclude: /node_modules\/(?!(@signalapp)\/).*/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['@babel/preset-env', {
+                                targets: {
+                                    browsers: ['last 2 versions', 'not dead', 'not ie 11']
+                                },
+                                useBuiltIns: 'usage',
+                                corejs: 3
+                            }]
+                        ],
+                        plugins: [
+                            '@babel/plugin-syntax-dynamic-import',
+                            '@babel/plugin-proposal-class-properties'
+                        ]
+                    }
+                }
+            },
+            {
+                test: /\.wasm$/,
+                type: 'webassembly/async'
+            }
+        ],
+        noParse: /\.wasm$/
+    };
+
     config.experiments = {
         ...config.experiments,
         asyncWebAssembly: true,
-        topLevelAwait: true,
-        syncWebAssembly: true
+        syncWebAssembly: true,
+        topLevelAwait: true
     };
 
-    // Ensure proper source maps in development
-    if (process.env.NODE_ENV === 'development') {
-        config.devtool = 'eval-source-map';
-    }
+    config.node = {
+        ...config.node,
+        global: true
+    };
 
     return config;
-}; 
+} 
