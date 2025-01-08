@@ -1,4 +1,4 @@
-import SignalClient from '@signalapp/libsignal-client';
+import * as SignalClient from '@signalapp/libsignal-client';
 import crypto from 'crypto';
 
 export class SignalProtocolManager {
@@ -10,7 +10,7 @@ export class SignalProtocolManager {
 
     async initialize() {
         try {
-            await SignalClient.init();
+            return Promise.resolve();
         } catch (error) {
             console.error('Failed to initialize Signal Protocol:', error);
             throw error;
