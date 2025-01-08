@@ -1,17 +1,31 @@
 services:
+  # Frontend Web Service
   - type: web
     name: speakeasy-client
     env: node
-    buildCommand: cd client && npm install && npm run build
-    startCommand: cd client && npm run serve
+    rootDir: client
+    plan: free # Adjust as needed
+    buildCommand: npm install && npm run build
+    startCommand: npm run serve
     envVars:
       - key: NODE_ENV
         value: production
       - key: REACT_APP_GIPHY_API_KEY
-        sync: false
-    autoDeploy: true
+        sync: false # Add this manually in Render dashboard
+      - key: PORT
+        value: 3000
     healthCheckPath: /
-    disk:
-      name: speakeasy-uploads
-      mountPath: /opt/render/project/src/uploads
-      sizeGB: 1 
+    autoDeploy: true
+    domains:
+      - speakeasy-chat.onrender.com # Replace with your desired domain
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html 

@@ -8,21 +8,22 @@ module.exports = function override(config, env) {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
             buffer: require.resolve('buffer/'),
-            process: require.resolve('process/browser'),
+            process: require.resolve('process/browser.js'),
             path: require.resolve('path-browserify'),
             fs: false,
         },
         alias: {
             '@signalapp/libsignal-client': path.resolve(__dirname, 'src/utils/signal-wrapper.js')
         },
-        extensions: ['.js', '.jsx', '.json', '.wasm']
+        extensions: ['.js', '.jsx', '.json', '.wasm', '.mjs'],
+        mainFields: ['browser', 'module', 'main']
     };
 
     config.plugins = [
         ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
-            process: 'process/browser'
+            process: 'process/browser.js'
         }),
         new webpack.DefinePlugin({
             'process.env': JSON.stringify({
