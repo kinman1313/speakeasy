@@ -121,35 +121,63 @@ const MessageBubble = ({ message, isOwn }) => {
         alignItems: 'flex-start',
         gap: 1,
         flexDirection: isOwn ? 'row-reverse' : 'row',
+        mb: 2,
       }}
     >
-      <Avatar src={message.avatar} sx={{ width: 32, height: 32 }}>
+      <Avatar
+        src={message.avatar}
+        sx={{
+          width: 32,
+          height: 32,
+          border: '2px solid',
+          borderColor: isOwn ? 'primary.main' : 'secondary.main',
+          boxShadow: '0 0 10px rgba(0, 229, 255, 0.2)',
+        }}
+      >
         {message.username?.[0]?.toUpperCase()}
       </Avatar>
 
       <Paper
-        elevation={1}
+        elevation={0}
+        className={`glass ${isOwn ? 'glow' : ''}`}
         sx={{
           maxWidth: '70%',
           p: 2,
-          bgcolor: isOwn ? theme.palette.primary.main : 'background.paper',
-          color: isOwn ? 'white' : 'text.primary',
+          background: isOwn
+            ? 'linear-gradient(145deg, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 100%)'
+            : 'linear-gradient(145deg, rgba(19,47,76,0.4) 0%, rgba(19,47,76,0.2) 100%)',
+          color: isOwn ? 'primary.main' : 'text.primary',
           borderRadius: '16px',
           position: 'relative',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid',
+          borderColor: isOwn ? 'rgba(0, 229, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+          boxShadow: isOwn
+            ? '0 8px 32px 0 rgba(0, 229, 255, 0.15)'
+            : '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
           ...(message.status === 'sending' && {
             opacity: 0.7,
           }),
           ...(message.status === 'failed' && {
-            bgcolor: 'error.main',
-            color: 'white',
+            background: 'linear-gradient(145deg, rgba(211,47,47,0.15) 0%, rgba(211,47,47,0.05) 100%)',
+            borderColor: 'rgba(211, 47, 47, 0.3)',
+            color: 'error.main',
           }),
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-1px)',
+            boxShadow: isOwn
+              ? '0 12px 40px 0 rgba(0, 229, 255, 0.2)'
+              : '0 12px 40px 0 rgba(0, 0, 0, 0.2)',
+          },
         }}
       >
         {!isOwn && (
           <Typography
             variant='caption'
+            className="gradient-text"
             sx={{
-              color: isOwn ? 'inherit' : 'text.secondary',
+              fontWeight: 500,
               mb: 0.5,
               display: 'block',
             }}
@@ -163,10 +191,11 @@ const MessageBubble = ({ message, isOwn }) => {
         <Typography
           variant='caption'
           sx={{
-            color: isOwn ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary',
+            color: isOwn ? 'primary.main' : 'text.secondary',
             mt: 0.5,
             display: 'block',
             textAlign: 'right',
+            opacity: 0.7,
           }}
         >
           {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
@@ -176,11 +205,22 @@ const MessageBubble = ({ message, isOwn }) => {
         <IconButton
           size='small'
           onClick={handleMenuOpen}
+          className="glass-hover"
           sx={{
             position: 'absolute',
             top: 8,
             [isOwn ? 'left' : 'right']: 8,
-            color: isOwn ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary',
+            color: isOwn ? 'primary.main' : 'text.secondary',
+            opacity: 0,
+            transition: 'opacity 0.2s ease',
+            '&:hover': {
+              background: isOwn
+                ? 'rgba(0, 229, 255, 0.1)'
+                : 'rgba(255, 255, 255, 0.1)',
+            },
+            '.MuiPaper-root:hover &': {
+              opacity: 1,
+            },
           }}
         >
           <MoreVertIcon fontSize='small' />
@@ -199,23 +239,55 @@ const MessageBubble = ({ message, isOwn }) => {
           vertical: 'top',
           horizontal: isOwn ? 'left' : 'right',
         }}
+        PaperProps={{
+          className: "glass",
+          elevation: 0,
+          sx: {
+            overflow: 'visible',
+            mt: 1.5,
+          }
+        }}
       >
-        <MenuItem onClick={handleReply}>
+        <MenuItem
+          onClick={handleReply}
+          sx={{
+            gap: 1,
+            '&:hover': {
+              background: 'rgba(0, 229, 255, 0.05)',
+            }
+          }}
+        >
           <ListItemIcon>
-            <ReplyIcon fontSize='small' />
+            <ReplyIcon fontSize='small' sx={{ color: 'primary.main' }} />
           </ListItemIcon>
           <ListItemText>Reply</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleCopy}>
+        <MenuItem
+          onClick={handleCopy}
+          sx={{
+            gap: 1,
+            '&:hover': {
+              background: 'rgba(0, 229, 255, 0.05)',
+            }
+          }}
+        >
           <ListItemIcon>
-            <CopyIcon fontSize='small' />
+            <CopyIcon fontSize='small' sx={{ color: 'primary.main' }} />
           </ListItemIcon>
           <ListItemText>Copy</ListItemText>
         </MenuItem>
         {isOwn && (
-          <MenuItem onClick={handleDelete}>
+          <MenuItem
+            onClick={handleDelete}
+            sx={{
+              gap: 1,
+              '&:hover': {
+                background: 'rgba(211, 47, 47, 0.05)',
+              }
+            }}
+          >
             <ListItemIcon>
-              <DeleteIcon fontSize='small' />
+              <DeleteIcon fontSize='small' sx={{ color: 'error.main' }} />
             </ListItemIcon>
             <ListItemText>Delete</ListItemText>
           </MenuItem>

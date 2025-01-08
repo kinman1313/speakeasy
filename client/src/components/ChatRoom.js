@@ -312,47 +312,89 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
   };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'linear-gradient(145deg, rgba(19,47,76,0.4) 0%, rgba(19,47,76,0.2) 100%)',
+      backdropFilter: 'blur(10px)',
+      borderRadius: 2,
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+    }}>
       {/* Room Header */}
       <Box
+        className="glass"
         sx={{
           p: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: 1,
-          borderColor: 'divider',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px 16px 0 0',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant='h6'>{room?.name || 'Loading...'}</Typography>
+          <Typography variant='h6' className="gradient-text" sx={{ fontWeight: 600 }}>
+            {room?.name || 'Loading...'}
+          </Typography>
           {unreadCount > 0 && (
             <Typography
               variant='caption'
+              className="glow"
               sx={{
-                backgroundColor: 'primary.main',
-                color: 'white',
-                px: 1,
+                backgroundColor: 'rgba(0, 229, 255, 0.15)',
+                color: 'primary.main',
+                px: 1.5,
                 py: 0.5,
-                borderRadius: 1,
+                borderRadius: 2,
+                fontWeight: 500,
               }}
             >
               {unreadCount} unread
             </Typography>
           )}
         </Box>
-        <Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title={notificationsEnabled ? 'Disable Notifications' : 'Enable Notifications'}>
-            <IconButton onClick={toggleNotifications}>
+            <IconButton
+              className="glass-hover"
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  background: 'rgba(0, 229, 255, 0.1)'
+                }
+              }}
+              onClick={toggleNotifications}
+            >
               {notificationsEnabled ? <NotificationsIcon /> : <NotificationsOffIcon />}
             </IconButton>
           </Tooltip>
           <Tooltip title='Invite Member'>
-            <IconButton onClick={() => setInviteDialogOpen(true)}>
+            <IconButton
+              className="glass-hover"
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  background: 'rgba(0, 229, 255, 0.1)'
+                }
+              }}
+              onClick={() => setInviteDialogOpen(true)}
+            >
               <InviteIcon />
             </IconButton>
           </Tooltip>
-          <IconButton onClick={e => setSettingsAnchorEl(e.currentTarget)}>
+          <IconButton
+            className="glass-hover"
+            sx={{
+              '&:hover': {
+                color: 'primary.main',
+                background: 'rgba(0, 229, 255, 0.1)'
+              }
+            }}
+            onClick={e => setSettingsAnchorEl(e.currentTarget)}
+          >
             <MoreIcon />
           </IconButton>
         </Box>
@@ -364,12 +406,28 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
           flex: 1,
           display: 'flex',
           overflow: 'hidden',
+          p: 2,
+          gap: 2,
         }}
       >
         {/* Messages Area */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
           <PinnedMessages messages={pinnedMessages} roomId={roomId} />
-          <MessageList messages={messages} />
+          <Box sx={{
+            flex: 1,
+            overflow: 'hidden',
+            borderRadius: 2,
+            background: 'rgba(19,47,76,0.3)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}>
+            <MessageList messages={messages} />
+          </Box>
           <Box sx={{ position: 'relative' }}>
             <TypingIndicator typingUsers={typingUsers} />
             <MessageInput onSendMessage={handleSendMessage} onTyping={handleTyping} />
@@ -378,29 +436,50 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
 
         {/* Members Sidebar */}
         <Box
+          className="glass"
           sx={{
             width: 240,
-            borderLeft: 1,
-            borderColor: 'divider',
+            borderRadius: 2,
             display: { xs: 'none', sm: 'block' },
+            overflow: 'hidden',
           }}
         >
           <List>
             <ListItem>
-              <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+              <Typography variant='subtitle1' sx={{ fontWeight: 600 }} className="gradient-text">
                 Members ({members.length})
               </Typography>
             </ListItem>
             {members.map(member => (
-              <ListItem key={member.id}>
+              <ListItem
+                key={member.id}
+                sx={{
+                  '&:hover': {
+                    background: 'rgba(0, 229, 255, 0.05)',
+                  }
+                }}
+              >
                 <ListItemAvatar>
-                  <Avatar src={member.avatar} alt={member.name}>
+                  <Avatar
+                    src={member.avatar}
+                    alt={member.name}
+                    sx={{
+                      border: '2px solid',
+                      borderColor: member.id === room?.ownerId ? 'primary.main' : 'transparent'
+                    }}
+                  >
                     {member.name[0]}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
                   primary={member.name}
                   secondary={member.id === room?.ownerId ? 'Owner' : ''}
+                  primaryTypographyProps={{
+                    sx: { fontWeight: 500 }
+                  }}
+                  secondaryTypographyProps={{
+                    sx: { color: 'primary.main' }
+                  }}
                 />
               </ListItem>
             ))}
@@ -413,22 +492,53 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
         anchorEl={settingsAnchorEl}
         open={Boolean(settingsAnchorEl)}
         onClose={() => setSettingsAnchorEl(null)}
+        PaperProps={{
+          className: "glass",
+          elevation: 0,
+          sx: {
+            overflow: 'visible',
+            mt: 1.5,
+          }
+        }}
       >
-        <MenuItem onClick={handleLeaveRoom}>
+        <MenuItem
+          onClick={handleLeaveRoom}
+          sx={{
+            gap: 1,
+            '&:hover': {
+              background: 'rgba(0, 229, 255, 0.05)',
+            }
+          }}
+        >
+          <LeaveIcon sx={{ color: 'error.main' }} />
           <ListItemText primary='Leave Room' />
-          <LeaveIcon sx={{ ml: 1 }} />
         </MenuItem>
         {room?.ownerId === user.id && (
-          <MenuItem onClick={handleDeleteRoom}>
+          <MenuItem
+            onClick={handleDeleteRoom}
+            sx={{
+              gap: 1,
+              '&:hover': {
+                background: 'rgba(0, 229, 255, 0.05)',
+              }
+            }}
+          >
+            <DeleteIcon sx={{ color: 'error.main' }} />
             <ListItemText primary='Delete Room' />
-            <DeleteIcon sx={{ ml: 1 }} />
           </MenuItem>
         )}
       </Menu>
 
       {/* Invite Dialog */}
-      <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
-        <DialogTitle>Invite Member</DialogTitle>
+      <Dialog
+        open={inviteDialogOpen}
+        onClose={() => setInviteDialogOpen(false)}
+        PaperProps={{
+          className: "glass",
+          elevation: 0,
+        }}
+      >
+        <DialogTitle className="gradient-text">Invite to Speakeasy</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -438,11 +548,42 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
             fullWidth
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleInviteMember} variant='contained'>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button
+            onClick={() => setInviteDialogOpen(false)}
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.05)',
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleInviteMember}
+            variant='contained'
+            className="glass-hover"
+            sx={{
+              background: 'linear-gradient(45deg, #00E5FF 30%, #0288D1 90%)',
+              boxShadow: '0 3px 5px 2px rgba(0, 229, 255, .3)',
+            }}
+          >
             Send Invite
           </Button>
         </DialogActions>
@@ -455,7 +596,15 @@ const ChatRoom = ({ roomId, onLeaveRoom, onClose }) => {
         onClose={() => setError('')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Alert onClose={() => setError('')} severity='error'>
+        <Alert
+          onClose={() => setError('')}
+          severity='error'
+          sx={{
+            background: 'rgba(211, 47, 47, 0.15)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(211, 47, 47, 0.3)',
+          }}
+        >
           {error}
         </Alert>
       </Snackbar>

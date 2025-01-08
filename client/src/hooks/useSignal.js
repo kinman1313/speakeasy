@@ -17,9 +17,9 @@ export function useSignal() {
                 if (typeof SignalClient === 'function') {
                     const signal = await SignalClient();
                     setSignalClient(signal);
-          } else {
-              setSignalClient(SignalClient);
-          }
+                } else {
+                    setSignalClient(SignalClient);
+                }
             } catch (error) {
                 console.error('Error initializing Signal client:', error);
                 showSnackbar('Error initializing encryption', 'error');

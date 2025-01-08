@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 const ThemeContext = createContext();
 
@@ -19,7 +20,7 @@ export const ThemeProvider = ({ children }) => {
 
   const [messageColor, setMessageColor] = useState(() => {
     const savedColor = localStorage.getItem('messageColor');
-    return savedColor || '#7C4DFF';
+    return savedColor || '#00E5FF';
   });
 
   const [bubbleStyle, setBubbleStyle] = useState(() => {
@@ -29,21 +30,26 @@ export const ThemeProvider = ({ children }) => {
 
   const theme = createTheme({
     palette: {
-      mode: themeMode,
+      mode: 'dark',
       primary: {
-        main: '#7C4DFF',
-        light: '#B47CFF',
-        dark: '#3F1DCF',
+        main: '#00E5FF',
+        light: '#6EFFFF',
+        dark: '#00B2CC',
       },
       secondary: {
-        main: '#FF4081',
-        light: '#FF79B0',
-        dark: '#C60055',
+        main: '#0288D1',
+        light: '#5EB8FF',
+        dark: '#005B9F',
       },
       background: {
-        default: themeMode === 'dark' ? '#121212' : '#F5F5F5',
-        paper: themeMode === 'dark' ? '#1E1E1E' : '#FFFFFF',
+        default: '#0A1929',
+        paper: alpha('#132F4C', 0.8),
         message: messageColor,
+        card: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+      },
+      text: {
+        primary: '#FFFFFF',
+        secondary: alpha('#FFFFFF', 0.7),
       },
     },
     typography: {
@@ -59,15 +65,20 @@ export const ThemeProvider = ({ children }) => {
       },
     },
     shape: {
-      borderRadius: 12,
+      borderRadius: 16,
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
             textTransform: 'none',
-            borderRadius: 8,
+            borderRadius: 12,
             padding: '8px 16px',
+            background: 'linear-gradient(145deg, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 100%)',
+            backdropFilter: 'blur(10px)',
+            '&:hover': {
+              background: 'linear-gradient(145deg, rgba(0,229,255,0.25) 0%, rgba(0,229,255,0.15) 100%)',
+            },
           },
         },
       },
@@ -75,6 +86,11 @@ export const ThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
+            backgroundColor: 'transparent',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
           },
         },
       },
@@ -82,6 +98,21 @@ export const ThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
+            backgroundColor: 'transparent',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'transparent',
+            backdropFilter: 'blur(10px)',
+            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           },
         },
       },
@@ -94,13 +125,13 @@ export const ThemeProvider = ({ children }) => {
               height: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              background: themeMode === 'dark' ? '#1E1E1E' : '#F5F5F5',
+              background: '#0A1929',
             },
             '&::-webkit-scrollbar-thumb': {
-              background: themeMode === 'dark' ? '#333333' : '#CCCCCC',
+              background: alpha('#00E5FF', 0.2),
               borderRadius: '4px',
               '&:hover': {
-                background: themeMode === 'dark' ? '#444444' : '#BBBBBB',
+                background: alpha('#00E5FF', 0.3),
               },
             },
           },
