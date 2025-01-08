@@ -11,10 +11,13 @@
         "@signalapp/libsignal-client": "^0.32.1",
         "axios": "^1.4.0",
         "buffer": "^6.0.3",
+        "compression": "^1.7.4",
         "core-js": "^3.32.1",
         "cross-env": "^7.0.3",
         "crypto-browserify": "^3.12.0",
         "date-fns": "^2.30.0",
+        "express": "^4.18.2",
+        "helmet": "^7.0.0",
         "path-browserify": "^1.0.1",
         "process": "^0.11.10",
         "react": "^18.2.0",
@@ -42,7 +45,9 @@
         "start": "react-app-rewired start",
         "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
         "test": "react-app-rewired test",
-        "eject": "react-scripts eject"
+        "eject": "react-scripts eject",
+        "serve": "node server.js",
+        "deploy": "npm run build && npm run serve"
     },
     "eslintConfig": {
         "extends": [
