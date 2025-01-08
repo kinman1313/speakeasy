@@ -18,19 +18,27 @@ module.exports = function override(config) {
             child_process: false,
             http: false,
             https: false
+        },
+        alias: {
+            '@signalapp/libsignal-client': '@signalapp/libsignal-client/dist/index.js'
         }
     };
 
-    // Configure plugins
+    // Configure plugins with additional polyfills for Signal
     config.plugins = [
         ...config.plugins,
         new webpack.ProvidePlugin({
             process: 'process/browser',
-            Buffer: ['buffer', 'Buffer']
+            Buffer: ['buffer', 'Buffer'],
+            require: ['process/browser', 'require']
+        }),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+            'process.env.SIGNAL_ENABLE_WASM': JSON.stringify(true)
         })
     ];
 
-    // Configure module rules
+    // Configure module rules with specific handling for Signal's WASM
     config.module.rules = [
         ...config.module.rules,
         {
@@ -38,11 +46,24 @@ module.exports = function override(config) {
             resolve: {
                 fullySpecified: false
             },
+            exclude: /node_modules\/(?!(@signalapp)\/).*/,
             use: {
                 loader: 'babel-loader',
                 options: {
-                    presets: ['@babel/preset-env'],
-                    plugins: ['@babel/plugin-syntax-dynamic-import']
+                    presets: [
+                        ['@babel/preset-env', {
+                            targets: {
+                                browsers: ['last 2 versions', 'not dead', 'not ie 11']
+                            },
+                            modules: 'auto',
+                            useBuiltIns: 'usage',
+                            corejs: 3
+                        }]
+                    ],
+                    plugins: [
+                        '@babel/plugin-syntax-dynamic-import',
+                        '@babel/plugin-proposal-class-properties'
+                    ]
                 }
             }
         },
@@ -59,7 +80,8 @@ module.exports = function override(config) {
     config.experiments = {
         ...config.experiments,
         asyncWebAssembly: true,
-        topLevelAwait: true
+        topLevelAwait: true,
+        syncWebAssembly: true
     };
 
     return config;
