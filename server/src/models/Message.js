@@ -47,6 +47,10 @@ const messageSchema = new mongoose.Schema({
     expiresAt: {
         type: Date
     },
+    expirationInterval: {
+        type: Number, // in seconds
+        default: 0 // 0 means no expiration
+    },
     // For edited messages
     isEdited: {
         type: Boolean,
@@ -100,6 +104,18 @@ const messageSchema = new mongoose.Schema({
         clientMessageId: String, // For message ordering and deduplication
         deviceId: Number,
         sessionId: String // Signal Protocol session ID
+    },
+    // For pinned messages
+    isPinned: {
+        type: Boolean,
+        default: false
+    },
+    pinnedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    pinnedAt: {
+        type: Date
     }
 }, {
     timestamps: true
@@ -111,10 +127,17 @@ messageSchema.index({ group: 1 });
 messageSchema.index({ createdAt: 1 });
 messageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index for disappearing messages
 
+// Add index for pinned messages
+messageSchema.index({ isPinned: 1 });
+
 // Pre-save middleware to handle message expiration
 messageSchema.pre('save', function (next) {
+    // Set expiration time if interval is set
+    if (this.expirationInterval > 0 && !this.expiresAt) {
+        this.expiresAt = new Date(Date.now() + this.expirationInterval * 1000);
+    }
+
     if (this.expiresAt && this.expiresAt <= new Date()) {
-        // Don't save expired messages
         const error = new Error('Message has expired');
         error.name = 'MessageExpiredError';
         return next(error);
@@ -176,6 +199,39 @@ messageSchema.methods.removeReaction = async function (userId) {
     await this.save();
 };
 
+// Method for pinning messages
+messageSchema.methods.pin = async function (userId) {
+    if (this.isPinned) {
+        throw new Error('Message is already pinned');
+    }
+    this.isPinned = true;
+    this.pinnedBy = userId;
+    this.pinnedAt = new Date();
+    await this.save();
+};
+
+// Method for unpinning messages
+messageSchema.methods.unpin = async function () {
+    if (!this.isPinned) {
+        throw new Error('Message is not pinned');
+    }
+    this.isPinned = false;
+    this.pinnedBy = null;
+    this.pinnedAt = null;
+    await this.save();
+};
+
+// Method for setting message expiration
+messageSchema.methods.setExpiration = async function (interval) {
+    this.expirationInterval = interval;
+    if (interval > 0) {
+        this.expiresAt = new Date(Date.now() + interval * 1000);
+    } else {
+        this.expiresAt = null;
+    }
+    await this.save();
+};
+
 // Static method to get messages between users
 messageSchema.statics.getMessagesBetweenUsers = async function (user1Id, user2Id, options = {}) {
     const query = {
@@ -202,6 +258,59 @@ messageSchema.statics.getMessagesBetweenUsers = async function (user1Id, user2Id
         .lean();
 
     return messages;
+};
+
+// Static method to get pinned messages
+messageSchema.statics.getPinnedMessages = async function (groupId = null) {
+    const query = { isPinned: true };
+    if (groupId) {
+        query.group = groupId;
+    }
+    return this.find(query)
+        .sort({ pinnedAt: -1 })
+        .populate('sender', 'username avatar')
+        .populate('pinnedBy', 'username avatar')
+        .populate('replyTo')
+        .lean();
+};
+
+// Static method to get chat history with pagination
+messageSchema.statics.getChatHistory = async function (options = {}) {
+    const {
+        userId,
+        groupId,
+        limit = 50,
+        before = new Date(),
+        includeExpired = false
+    } = options;
+
+    const query = {
+        createdAt: { $lt: before }
+    };
+
+    if (groupId) {
+        query.group = groupId;
+    } else if (userId) {
+        query.$or = [
+            { sender: userId },
+            { recipient: userId }
+        ];
+    }
+
+    if (!includeExpired) {
+        query.$or = [
+            { expiresAt: { $exists: false } },
+            { expiresAt: { $gt: new Date() } }
+        ];
+    }
+
+    return this.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .populate('sender', 'username avatar')
+        .populate('recipient', 'username avatar')
+        .populate('replyTo')
+        .lean();
 };
 
 export const Message = mongoose.model('Message', messageSchema); 
