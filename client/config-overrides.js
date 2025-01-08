@@ -7,15 +7,15 @@ module.exports = function override(config) {
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
         process: require.resolve('process/browser'),
+        zlib: require.resolve('browserify-zlib'),
+        path: require.resolve('path-browserify'),
+        os: require.resolve('os-browserify/browser'),
         fs: false,
-        path: false,
         net: false,
         tls: false,
         child_process: false,
-        os: false,
         http: false,
-        https: false,
-        zlib: false
+        https: false
     };
 
     config.plugins = [
@@ -35,6 +35,19 @@ module.exports = function override(config) {
             fullySpecified: false
         }
     });
+
+    // Add node-loader for native modules
+    config.module.rules.push({
+        test: /\.node$/,
+        loader: 'node-loader'
+    });
+
+    // Ignore optional native modules
+    config.externals = {
+        ...config.externals,
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'bufferutil': 'commonjs bufferutil'
+    };
 
     return config;
 }; 
