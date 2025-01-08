@@ -3,14 +3,14 @@ services:
   - type: web
     name: speakeasy-client
     env: node
-    plan: free # Adjust as needed
-    buildCommand: cd client && npm install && CI=false ./node_modules/.bin/react-app-rewired build
-    startCommand: cd client && npx serve -s build -l $PORT
+    plan: free
+    buildCommand: cd client && npm install && npm run build
+    startCommand: cd client && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: REACT_APP_GIPHY_API_KEY
-        sync: false # Add this manually in Render dashboard
+        sync: false
       - key: PORT
         value: 3000
     healthCheckPath: /
