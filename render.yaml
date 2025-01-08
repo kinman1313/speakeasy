@@ -4,8 +4,8 @@ services:
     name: speakeasy-client
     env: node
     plan: free # Adjust as needed
-    buildCommand: cd client && npm install && npm run build
-    startCommand: cd client && npm run serve
+    buildCommand: cd client && npm install && CI=false npm run build
+    startCommand: cd client && npx serve -s build -l $PORT
     envVars:
       - key: NODE_ENV
         value: production
