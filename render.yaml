@@ -2,7 +2,7 @@ services:
   - type: web
     name: chat-client
     env: node
-    buildCommand: cd client && npm install --include=dev && npm run lint:fix || true && npm run format && npm run build
+    buildCommand: cd client && npm install --include=dev && npm run lint:fix || true && npm run build
     startCommand: cd client && npm install -g serve && serve -s build -l $PORT
     envVars:
       - key: NODE_ENV

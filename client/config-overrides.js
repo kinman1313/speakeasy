@@ -13,6 +13,7 @@ module.exports = function override(config) {
             zlib: require.resolve('browserify-zlib'),
             path: require.resolve('path-browserify'),
             os: require.resolve('os-browserify/browser'),
+            vm: false,
             fs: false,
             net: false,
             tls: false,
@@ -29,18 +30,25 @@ module.exports = function override(config) {
     };
 
     // Configure plugins
+    const definePluginConfig = {
+        'process.env': {
+            NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+            REACT_APP_API_URL: JSON.stringify(process.env.REACT_APP_API_URL),
+            REACT_APP_SOCKET_URL: JSON.stringify(process.env.REACT_APP_SOCKET_URL),
+            REACT_APP_NAME: JSON.stringify(process.env.REACT_APP_NAME),
+            REACT_APP_DESCRIPTION: JSON.stringify(process.env.REACT_APP_DESCRIPTION),
+            REACT_APP_VERSION: JSON.stringify(process.env.REACT_APP_VERSION),
+            SIGNAL_ENABLE_WASM: JSON.stringify(true)
+        }
+    };
+
     config.plugins = [
-        ...config.plugins,
+        ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
             process: [path.resolve(__dirname, 'node_modules/process/browser.js'), 'process'],
             Buffer: ['buffer', 'Buffer']
         }),
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-                SIGNAL_ENABLE_WASM: JSON.stringify(true)
-            }
-        })
+        new webpack.DefinePlugin(definePluginConfig)
     ];
 
     // Configure module rules
