@@ -1,5 +1,5 @@
 import { Group } from '../models/Group.js';
-import User from '../models/User.js';
+import { User } from '../models/User.js';
 import messageEncryptionService from './messageEncryptionService.js';
 import logger from '../utils/logger.js';
 

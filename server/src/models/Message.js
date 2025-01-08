@@ -204,6 +204,4 @@ messageSchema.statics.getMessagesBetweenUsers = async function (user1Id, user2Id
     return messages;
 };
 
-const Message = mongoose.model('Message', messageSchema);
-
-export default Message; 
+export const Message = mongoose.model('Message', messageSchema); 

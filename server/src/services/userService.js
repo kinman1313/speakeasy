@@ -1,4 +1,4 @@
-import User from '../models/User.js';
+import { User } from '../models/User.js';
 import messageEncryptionService from './messageEncryptionService.js';
 import logger from '../utils/logger.js';
 import jwt from 'jsonwebtoken';
