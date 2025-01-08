@@ -4,8 +4,8 @@ services:
     name: speakeasy-client
     env: node
     plan: free
-    buildCommand: cd client && npm install && npm run build
-    startCommand: cd client && npm start
+    buildCommand: cd client && npm install && npx cross-env GENERATE_SOURCEMAP=false npx react-app-rewired build
+    startCommand: cd client && node server.js
     envVars:
       - key: NODE_ENV
         value: production
