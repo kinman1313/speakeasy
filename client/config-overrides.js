@@ -23,15 +23,15 @@ module.exports = function override(config) {
         alias: {
             '@signalapp/libsignal-client': '@signalapp/libsignal-client/dist/index.js'
         },
-        extensions: ['.js', '.jsx', '.json', '.wasm'],
-        fallbackCdnUrl: 'https://cdn.jsdelivr.net/npm/@signalapp/libsignal-client/dist/'
+        extensions: ['.js', '.jsx', '.json', '.wasm']
     };
 
     config.plugins = [
         ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
-            process: 'process/browser.js'
+            process: 'process/browser.js',
+            require: 'process/browser.js'
         }),
         new webpack.DefinePlugin({
             'process.env': JSON.stringify({
@@ -39,21 +39,6 @@ module.exports = function override(config) {
                 NODE_ENV: process.env.NODE_ENV || 'development'
             }),
             'global.TYPED_ARRAY_SUPPORT': JSON.stringify(true)
-        }),
-        new webpack.NormalModuleReplacementPlugin(
-            /node:crypto/,
-            require.resolve('crypto-browserify')
-        ),
-        new webpack.LoaderOptionsPlugin({
-            options: {
-                resolve: {
-                    fallback: {
-                        "crypto": require.resolve("crypto-browserify"),
-                        "stream": require.resolve("stream-browserify"),
-                        "buffer": require.resolve("buffer/")
-                    }
-                }
-            }
         })
     ];
 
