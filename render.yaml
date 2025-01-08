@@ -4,7 +4,7 @@ services:
     name: speakeasy-client
     env: node
     plan: free # Adjust as needed
-    buildCommand: cd client && npm install && CI=false npm run build
+    buildCommand: cd client && npm install && CI=false ./node_modules/.bin/react-app-rewired build
     startCommand: cd client && npx serve -s build -l $PORT
     envVars:
       - key: NODE_ENV
