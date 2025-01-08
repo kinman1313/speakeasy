@@ -38,9 +38,7 @@
         "start": "react-app-rewired start",
         "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
         "test": "react-app-rewired test",
-        "eject": "react-scripts eject",
-        "lint": "eslint src/**/*.{js,jsx}",
-        "lint:fix": "eslint src/**/*.{js,jsx} --fix"
+        "eject": "react-scripts eject"
     },
     "eslintConfig": {
         "extends": [
