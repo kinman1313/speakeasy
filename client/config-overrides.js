@@ -1,27 +1,19 @@
 const webpack = require('webpack');
 const path = require('path');
 
-module.exports = function override(config) {
+module.exports = function override(config, env) {
     config.resolve = {
         ...config.resolve,
         fallback: {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
-            buffer: require.resolve('buffer'),
-            process: require.resolve('process/browser.js'),
-            zlib: require.resolve('browserify-zlib'),
+            buffer: require.resolve('buffer/'),
+            process: require.resolve('process/browser'),
             path: require.resolve('path-browserify'),
-            os: require.resolve('os-browserify/browser'),
-            vm: false,
             fs: false,
-            net: false,
-            tls: false,
-            child_process: false,
-            http: false,
-            https: false
         },
         alias: {
-            '@signalapp/libsignal-client': path.resolve(__dirname, 'node_modules/@signalapp/libsignal-client/dist/index.js')
+            '@signalapp/libsignal-client': path.resolve(__dirname, 'src/utils/signal-wrapper.js')
         },
         extensions: ['.js', '.jsx', '.json', '.wasm']
     };
@@ -30,7 +22,7 @@ module.exports = function override(config) {
         ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
-            process: 'process/browser.js'
+            process: 'process/browser'
         }),
         new webpack.DefinePlugin({
             'process.env': JSON.stringify({
