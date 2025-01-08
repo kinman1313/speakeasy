@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import SignalClient from '@signalapp/libsignal-client';
+import * as SignalClient from '@signalapp/libsignal-client';
 import { SignalProtocolStore } from '../utils/SignalStore';
 import { useSnackbar } from './useSnackbar';
 
@@ -14,9 +14,12 @@ export function useSignal() {
     useEffect(() => {
         const initSignal = async () => {
             try {
-                // Load the WASM module
-                const signal = await SignalClient.load();
-                setSignalClient(signal);
+                if (typeof SignalClient === 'function') {
+                    const signal = await SignalClient();
+                    setSignalClient(signal);
+          } else {
+              setSignalClient(SignalClient);
+          }
             } catch (error) {
                 console.error('Error initializing Signal client:', error);
                 showSnackbar('Error initializing encryption', 'error');

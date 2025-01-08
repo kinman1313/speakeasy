@@ -21,7 +21,7 @@ module.exports = function override(config) {
             https: false
         },
         alias: {
-            '@signalapp/libsignal-client': '@signalapp/libsignal-client/dist/index.js'
+            '@signalapp/libsignal-client': path.resolve(__dirname, 'node_modules/@signalapp/libsignal-client/dist/index.js')
         },
         extensions: ['.js', '.jsx', '.json', '.wasm']
     };
@@ -30,15 +30,13 @@ module.exports = function override(config) {
         ...config.plugins.filter(plugin => !(plugin instanceof webpack.DefinePlugin)),
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
-            process: 'process/browser.js',
-            require: 'process/browser.js'
+            process: 'process/browser.js'
         }),
         new webpack.DefinePlugin({
             'process.env': JSON.stringify({
                 ...process.env,
                 NODE_ENV: process.env.NODE_ENV || 'development'
-            }),
-            'global.TYPED_ARRAY_SUPPORT': JSON.stringify(true)
+            })
         })
     ];
 
@@ -75,8 +73,7 @@ module.exports = function override(config) {
                 test: /\.wasm$/,
                 type: 'webassembly/async'
             }
-        ],
-        noParse: /\.wasm$/
+        ]
     };
 
     config.experiments = {
@@ -84,11 +81,6 @@ module.exports = function override(config) {
         asyncWebAssembly: true,
         syncWebAssembly: true,
         topLevelAwait: true
-    };
-
-    config.node = {
-        ...config.node,
-        global: true
     };
 
     return config;
