@@ -25,6 +25,28 @@ const app = express();
 // Create HTTP server
 const server = http.createServer(app);
 
+// Configure security headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-eval'", "'wasm-unsafe-eval'"],
+            connectSrc: ["'self'", process.env.CLIENT_URL],
+            imgSrc: ["'self'", "data:", "blob:"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            fontSrc: ["'self'", "data:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            workerSrc: ["'self'", "blob:"],
+            childSrc: ["'self'", "blob:"],
+            upgradeInsecureRequests: []
+        }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 // Initialize Socket.IO
 socketService.initialize(server);
 

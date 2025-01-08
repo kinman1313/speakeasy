@@ -10,6 +10,7 @@ export class SignalProtocolManager {
 
     async initialize() {
         try {
+            // No initialization needed for newer versions
             return Promise.resolve();
         } catch (error) {
             console.error('Failed to initialize Signal Protocol:', error);
@@ -18,39 +19,56 @@ export class SignalProtocolManager {
     }
 
     async generateIdentityKeyPair(userId) {
-        const identityKeyPair = await SignalClient.IdentityKeyPair.generate();
-        this.identityKeys.set(userId, identityKeyPair);
-        return identityKeyPair;
+        try {
+            const identityKeyPair = SignalClient.PrivateKey.generate();
+            const publicKey = identityKeyPair.getPublicKey();
+            this.identityKeys.set(userId, { privateKey: identityKeyPair, publicKey });
+            return { privateKey: identityKeyPair, publicKey };
+        } catch (error) {
+            console.error('Failed to generate identity key pair:', error);
+            throw error;
+        }
     }
 
     async generatePreKeyBundle(userId, startId, count) {
-        const identityKeyPair = this.identityKeys.get(userId);
-        if (!identityKeyPair) {
-            throw new Error('Identity key pair not found');
+        try {
+            const identityKeyPair = this.identityKeys.get(userId);
+            if (!identityKeyPair) {
+                throw new Error('Identity key pair not found');
+            }
+
+            const preKeys = [];
+            for (let i = startId; i < startId + count; i++) {
+                const preKey = SignalClient.PrivateKey.generate();
+                preKeys.push({
+                    id: i,
+                    privateKey: preKey,
+                    publicKey: preKey.getPublicKey()
+                });
+            }
+
+            const signedPreKey = SignalClient.PrivateKey.generate();
+            const signature = identityKeyPair.privateKey.sign(
+                signedPreKey.getPublicKey().serialize()
+            );
+
+            const bundle = {
+                identityKey: identityKeyPair.publicKey,
+                registrationId: crypto.randomInt(1, 16383),
+                preKeys,
+                signedPreKey: {
+                    id: startId + count,
+                    publicKey: signedPreKey.getPublicKey(),
+                    signature
+                }
+            };
+
+            this.preKeyBundles.set(userId, bundle);
+            return bundle;
+        } catch (error) {
+            console.error('Failed to generate pre-key bundle:', error);
+            throw error;
         }
-
-        const preKeys = [];
-        for (let i = startId; i < startId + count; i++) {
-            const preKey = await SignalClient.PreKeyRecord.new(i, SignalClient.PrivateKey.generate());
-            preKeys.push(preKey);
-        }
-
-        const signedPreKey = await SignalClient.SignedPreKeyRecord.new(
-            startId + count,
-            Date.now(),
-            SignalClient.PrivateKey.generate(),
-            identityKeyPair.privateKey
-        );
-
-        const bundle = {
-            identityKey: identityKeyPair.publicKey,
-            registrationId: crypto.randomInt(1, 16383), // Signal Protocol registration ID
-            preKeys,
-            signedPreKey
-        };
-
-        this.preKeyBundles.set(userId, bundle);
-        return bundle;
     }
 
     async createSession(senderId, recipientId, preKeyBundle) {
