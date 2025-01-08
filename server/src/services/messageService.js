@@ -1,6 +1,6 @@
 import Message from '../models/Message.js';
 import User from '../models/User.js';
-import Group from '../models/Group.js';
+import { Group } from '../models/Group.js';
 import messageEncryptionService from './messageEncryptionService.js';
 import logger from '../utils/logger.js';
 

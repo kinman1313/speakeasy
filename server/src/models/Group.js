@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const groupSchema = new mongoose.Schema({
     name: {
@@ -230,6 +230,4 @@ groupSchema.statics.findActive = async function (days = 30) {
     }).sort({ 'metadata.lastActivity': -1 });
 };
 
-const Group = mongoose.model('Group', groupSchema);
-
-module.exports = Group; 
+export const Group = mongoose.model('Group', groupSchema); 
