@@ -5,7 +5,7 @@ import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
 import http from 'http';
-import socketService from './socket/socketService.js';
+import { socketService } from './socket/socketService.js';
 import messageEncryptionService from './services/messageEncryptionService.js';
 import logger from './utils/logger.js';
 import { notFound, errorHandler } from './middleware/error.js';

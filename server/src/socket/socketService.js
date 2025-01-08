@@ -1,9 +1,9 @@
-const socketIo = require('socket.io');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const messageService = require('../services/messageService');
-const messageEncryptionService = require('../services/messageEncryptionService');
-const logger = require('../utils/logger');
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User.js';
+import messageService from '../services/messageService.js';
+import messageEncryptionService from '../services/messageEncryptionService.js';
+import logger from '../utils/logger.js';
 
 class SocketService {
     constructor() {
@@ -12,7 +12,7 @@ class SocketService {
     }
 
     initialize(server) {
-        this.io = socketIo(server, {
+        this.io = new Server(server, {
             cors: {
                 origin: process.env.CLIENT_URL,
                 methods: ['GET', 'POST'],
@@ -283,5 +283,4 @@ class SocketService {
 
 // Create singleton instance
 const socketService = new SocketService();
-
-module.exports = socketService; 
+export { socketService }; 
