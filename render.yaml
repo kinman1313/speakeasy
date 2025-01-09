@@ -16,6 +16,8 @@ services:
     autoDeploy: true
     domains:
       - speakeasy-client.onrender.com
+    runtime: node
+    nodeVersion: 18.x
 
   # Backend API Service
   - type: web
@@ -50,3 +52,5 @@ services:
       - key: SMTP_FROM
         sync: false
     autoDeploy: true
+    runtime: node
+    nodeVersion: 18.x
