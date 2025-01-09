@@ -4,8 +4,11 @@ services:
     name: speakeasy-client
     env: node
     plan: free
-    buildCommand: cd client && npm install && npx cross-env GENERATE_SOURCEMAP=false npx react-app-rewired build
-    startCommand: cd client && node server.js
+    buildCommand: |
+      cd client && 
+      npm install &&
+      npm run build
+    startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
         value: production
@@ -13,19 +16,26 @@ services:
         sync: false
       - key: PORT
         value: 3000
+      - key: REACT_APP_API_URL
+        value: https://speakeasy-server-7lyh.onrender.com
+      - key: REACT_APP_SOCKET_URL
+        value: wss://speakeasy-server-7lyh.onrender.com
+      - key: REACT_APP_SIGNAL_SERVER_KEY
+        sync: false
     autoDeploy: true
     domains:
       - speakeasy-client.onrender.com
-    runtime: node
-    nodeVersion: 18.x
 
   # Backend API Service
   - type: web
     name: speakeasy-server
     env: node
     plan: free
-    buildCommand: cd server && npm install && mkdir -p dist && cp -r src/* dist/
-    startCommand: cd server && node src/index.js
+    buildCommand: |
+      cd server && 
+      npm install &&
+      npm run build
+    startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -51,6 +61,5 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
-    autoDeploy: true
-    runtime: node
-    nodeVersion: 18.x
+      - key: SIGNAL_SERVER_KEY
+        sync: false

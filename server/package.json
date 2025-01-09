@@ -4,6 +4,10 @@
     "description": "Speakeasy Chat Application Server",
     "main": "src/index.js",
     "type": "module",
+    "engines": {
+        "node": "18.x",
+        "npm": "9.x"
+    },
     "scripts": {
         "start": "node src/index.js",
         "dev": "nodemon src/index.js",
@@ -42,8 +46,5 @@
         "prettier": "^3.0.2",
         "rimraf": "^5.0.0",
         "supertest": "^6.3.3"
-    },
-    "engines": {
-        "node": "18.x"
     }
 }

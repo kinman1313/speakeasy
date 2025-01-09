@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 
 const ThemeContext = createContext();
 
@@ -45,7 +46,6 @@ export const ThemeProvider = ({ children }) => {
         default: '#0A1929',
         paper: alpha('#132F4C', 0.8),
         message: messageColor,
-        card: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
       },
       text: {
         primary: '#FFFFFF',
@@ -64,62 +64,20 @@ export const ThemeProvider = ({ children }) => {
         fontWeight: 600,
       },
     },
-    shape: {
-      borderRadius: 16,
-    },
     components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-            borderRadius: 12,
-            padding: '8px 16px',
-            background: 'linear-gradient(145deg, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 100%)',
-            backdropFilter: 'blur(10px)',
-            '&:hover': {
-              background: 'linear-gradient(145deg, rgba(0,229,255,0.25) 0%, rgba(0,229,255,0.15) 100%)',
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-            backgroundColor: 'transparent',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-            backgroundColor: 'transparent',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          },
-        },
-      },
-      MuiAppBar: {
-        styleOverrides: {
-          root: {
-            backgroundColor: 'transparent',
-            backdropFilter: 'blur(10px)',
-            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          },
-        },
-      },
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            scrollbarWidth: 'thin',
+            margin: 0,
+            padding: 0,
+            minHeight: '100vh',
+            backgroundColor: '#0A1929',
+            backgroundImage:
+              'radial-gradient(at 0% 0%, rgba(0, 229, 255, 0.1) 0px, transparent 50%), ' +
+              'radial-gradient(at 100% 0%, rgba(2, 136, 209, 0.1) 0px, transparent 50%), ' +
+              'radial-gradient(at 100% 100%, rgba(0, 229, 255, 0.1) 0px, transparent 50%), ' +
+              'radial-gradient(at 0% 100%, rgba(2, 136, 209, 0.1) 0px, transparent 50%)',
+            color: '#FFFFFF',
             '&::-webkit-scrollbar': {
               width: '8px',
               height: '8px',
@@ -135,6 +93,31 @@ export const ThemeProvider = ({ children }) => {
               },
             },
           },
+          '#root': {
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            backgroundColor: 'transparent',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(145deg, rgba(19,47,76,0.9) 0%, rgba(19,47,76,0.6) 100%)',
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            borderRadius: 12,
+            padding: '8px 16px',
+          },
         },
       },
     },
@@ -146,14 +129,9 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('bubbleStyle', bubbleStyle);
   }, [themeMode, messageColor, bubbleStyle]);
 
-  const toggleTheme = () => {
-    setThemeMode(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
-
   const value = {
     themeMode,
     setThemeMode,
-    toggleTheme,
     messageColor,
     setMessageColor,
     bubbleStyle,
@@ -162,7 +140,10 @@ export const ThemeProvider = ({ children }) => {
 
   return (
     <ThemeContext.Provider value={value}>
-      <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </MuiThemeProvider>
     </ThemeContext.Provider>
   );
 };
