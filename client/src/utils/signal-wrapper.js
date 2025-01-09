@@ -7,6 +7,23 @@ let signalComponents = null;
 let isInitializing = false;
 let initializationPromise = null;
 
+// Initialize Signal client with proper error handling and caching
+const initializeSignalClient = async () => {
+    if (signalInstance) {
+        return signalInstance;
+    }
+
+    try {
+        // Initialize SignalClient properly before using it
+        signalInstance = await (typeof SignalClient === 'function' ? SignalClient() : Promise.resolve(SignalClient));
+        return signalInstance;
+    } catch (error) {
+        console.error('Failed to initialize Signal client:', error);
+        signalInstance = null; // Reset on error
+        throw error;
+    }
+};
+
 // Error types for better error handling
 export const ErrorTypes = {
     INITIALIZATION_ERROR: 'INITIALIZATION_ERROR',
@@ -36,24 +53,6 @@ const wrapAsync = async (fn, errorType, errorMessage) => {
     }
 };
 
-// Initialize Signal client with proper error handling
-const initializeSignalClient = async () => {
-    if (signalInstance) {
-        return signalInstance;
-    }
-
-    try {
-        signalInstance = typeof SignalClient === 'function' ? await SignalClient() : SignalClient;
-        return signalInstance;
-    } catch (error) {
-        throw new SignalError(
-            ErrorTypes.INITIALIZATION_ERROR,
-            'Failed to initialize Signal client',
-            error
-        );
-    }
-};
-
 // Load Signal client with retries and proper error handling
 const getSignalInstance = async () => {
     const maxRetries = 3;
@@ -79,11 +78,19 @@ const getSignalInstance = async () => {
 };
 
 // Create Signal components with comprehensive error handling
-const createComponents = (signal) => {
+const createComponents = async (signal) => {
     if (!signal) {
         throw new SignalError(
             ErrorTypes.INSTANCE_ERROR,
             'Signal instance not provided'
+        );
+    }
+
+    // Ensure KeyHelper is available
+    if (!signal.KeyHelper) {
+        throw new SignalError(
+            ErrorTypes.COMPONENT_ERROR,
+            'KeyHelper not available in Signal instance'
         );
     }
 
@@ -220,7 +227,7 @@ const initializeSignal = async () => {
     initializationPromise = (async () => {
         try {
             const signal = await getSignalInstance();
-            signalComponents = createComponents(signal);
+            signalComponents = await createComponents(signal);
             return signalComponents;
         } catch (error) {
             console.error('Failed to initialize Signal Protocol:', error);
