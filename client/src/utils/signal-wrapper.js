@@ -1,5 +1,5 @@
 // This is a wrapper for the Signal Protocol library to ensure it works within Create React App's src directory
-let SignalClient;
+import SignalClient from '@signalapp/libsignal-client';
 
 // Initialize Signal Protocol components with proper state management
 let signalInstance = null;
@@ -36,15 +36,19 @@ const wrapAsync = async (fn, errorType, errorMessage) => {
     }
 };
 
-// Dynamic import of Signal client to prevent initialization errors
-const loadSignalClient = async () => {
+// Initialize Signal client with proper error handling
+const initializeSignalClient = async () => {
+    if (signalInstance) {
+        return signalInstance;
+    }
+
     try {
-        SignalClient = (await import('@signalapp/libsignal-client')).default;
-        return SignalClient;
+        signalInstance = typeof SignalClient === 'function' ? await SignalClient() : SignalClient;
+        return signalInstance;
     } catch (error) {
         throw new SignalError(
             ErrorTypes.INITIALIZATION_ERROR,
-            'Failed to load Signal client module',
+            'Failed to initialize Signal client',
             error
         );
     }
@@ -52,25 +56,12 @@ const loadSignalClient = async () => {
 
 // Load Signal client with retries and proper error handling
 const getSignalInstance = async () => {
-    if (signalInstance) {
-        return signalInstance;
-    }
-
     const maxRetries = 3;
     let lastError = null;
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            if (!SignalClient) {
-                await loadSignalClient();
-            }
-
-            if (typeof SignalClient === 'function') {
-                signalInstance = await SignalClient();
-            } else {
-                signalInstance = SignalClient;
-            }
-            return signalInstance;
+            return await initializeSignalClient();
         } catch (error) {
             console.warn(`Signal initialization attempt ${i + 1} failed:`, error);
             lastError = error;
@@ -264,7 +255,4 @@ export const getSignalComponents = async () => {
             error
         );
     }
-};
-
-// Export Signal client for direct access if needed
-export default SignalClient; 
+}; 
