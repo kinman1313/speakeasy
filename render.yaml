@@ -5,7 +5,11 @@ services:
     env: node
     plan: free
     branch: main
-    buildCommand: cd client && npm install && npx cross-env GENERATE_SOURCEMAP=false npx react-app-rewired build
+    buildCommand: |
+      cd client
+      npm install
+      npm install --save-dev webpack webpack-cli webpack-dev-server @babel/core babel-loader
+      npx cross-env GENERATE_SOURCEMAP=false npx react-app-rewired build
     startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
