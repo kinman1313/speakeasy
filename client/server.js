@@ -4,41 +4,41 @@ const compression = require('compression');
 const helmet = require('helmet');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            connectSrc: ["'self'", "wss://speakeasy-server.onrender.com", "https://speakeasy-server.onrender.com", "https://api.giphy.com"],
-            imgSrc: ["'self'", "https://media.giphy.com", "data:", "blob:"],
-            mediaSrc: ["'self'", "data:", "blob:"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            workerSrc: ["'self'", "blob:"],
-        },
-    },
-}));
-
-// Compression middleware
+// Enable compression
 app.use(compression());
 
-// Serve static files
+// Configure Helmet with custom CSP
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: ["'self'", "wss:", "ws:", "https:"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+                fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+                imgSrc: ["'self'", "data:", "https:", "blob:"],
+                mediaSrc: ["'self'", "https:", "blob:"],
+                objectSrc: ["'none'"],
+                frameSrc: ["'none'"],
+                baseUri: ["'self'"]
+            }
+        },
+        crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    })
+);
+
+// Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Handle all routes for SPA
-app.get('/*', function (req, res) {
+// Handle React routing, return all requests to React app
+app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 }); 
