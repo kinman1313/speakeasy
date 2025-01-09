@@ -25,7 +25,7 @@ const sendPasswordResetEmail = async (email, resetToken) => {
     console.log('SMTP Configuration:', smtpConfig);
 
     // Construct reset URL based on environment
-    const clientUrl = process.env.CLIENT_URL || 'https://lies-client.onrender.com';
+    const clientUrl = process.env.CLIENT_URL || 'https://speakeasy-client.onrender.com';
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     console.log('Reset URL:', resetUrl);
 
