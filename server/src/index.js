@@ -1,143 +1,152 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import compression from 'compression';
-import helmet from 'helmet';
-import http from 'http';
-import { socketService } from './socket/socketService.js';
-import messageEncryptionService from './services/messageEncryptionService.js';
-import logger from './utils/logger.js';
-import { notFound, errorHandler } from './middleware/error.js';
-import { authLimiter } from './middleware/auth.js';
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const compression = require('compression');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const winston = require('winston');
+const { rateLimit } = require('express-rate-limit');
+const MessageCleanupService = require('./services/messageCleanupService');
+
+// Configure Winston logger
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
+    ]
+});
 
 // Import routes
-import userRoutes from './routes/users.js';
-import messageRoutes from './routes/messages.js';
-import groupRoutes from './routes/groups.js';
-import giphyRoutes from './routes/giphy.js';
+const userRoutes = require('./routes/users');
 
-dotenv.config();
-
-// Create Express app
 const app = express();
-
-// Create HTTP server
 const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
-// Configure security headers
+// Initialize cleanup service
+const messageCleanupService = new MessageCleanupService(io);
+messageCleanupService.start();
+
+// Security middleware
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-eval'", "'wasm-unsafe-eval'"],
-            connectSrc: ["'self'", process.env.CLIENT_URL],
+            connectSrc: ["'self'", process.env.CLIENT_URL || "https://speakeasy-client.onrender.com"],
             imgSrc: ["'self'", "data:", "blob:"],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            fontSrc: ["'self'", "data:"],
-            objectSrc: ["'none'"],
-            mediaSrc: ["'self'"],
-            frameSrc: ["'none'"],
+            scriptSrc: ["'self'", "'unsafe-eval'"],
             workerSrc: ["'self'", "blob:"],
-            childSrc: ["'self'", "blob:"],
-            upgradeInsecureRequests: []
+            childSrc: ["'self'", "blob:"]
         }
     },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Initialize Socket.IO
-socketService.initialize(server);
-
-// Initialize Signal Protocol
-(async () => {
-    try {
-        await messageEncryptionService.initialize();
-        logger.info('Signal Protocol initialized successfully');
-    } catch (error) {
-        logger.error('Failed to initialize Signal Protocol:', error);
-        process.exit(1);
-    }
-})();
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-    .then(() => {
-        logger.info('Connected to MongoDB');
-    })
-    .catch((error) => {
-        logger.error('MongoDB connection error:', error);
-        process.exit(1);
-    });
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
     credentials: true
 }));
 app.use(compression());
-app.use(helmet());
-
-// Request logging
-app.use(logger.requestMiddleware);
-
-// Rate limiting
-app.use('/api/auth', authLimiter);
-
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/groups', groupRoutes);
-app.use('/api/giphy', giphyRoutes);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
     res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
     });
 });
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+// Mount routes
+app.use('/api/auth', userRoutes);
+app.use('/api/users', userRoutes);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+    logger.error(err.stack);
+    res.status(500).json({
+        status: 'error',
+        message: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message
+    });
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-    logger.error('Unhandled Rejection:', err);
-    // Close server & exit process
-    server.close(() => process.exit(1));
+// Socket connection handling
+io.on('connection', (socket) => {
+    logger.info('New client connected');
+
+    socket.on('disconnect', () => {
+        logger.info('Client disconnected');
+    });
+});
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/chat', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    family: 4
+})
+    .then(() => {
+        logger.info('Connected to MongoDB');
+        const PORT = process.env.PORT || 8080;
+        server.listen(PORT, () => {
+            logger.info(`Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        logger.error('MongoDB connection error:', err);
+        process.exit(1);
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     logger.error('Uncaught Exception:', err);
-    // Close server & exit process
-    server.close(() => process.exit(1));
+    process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    logger.error('Unhandled Rejection:', err);
+    process.exit(1);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-    logger.info('SIGTERM received. Shutting down gracefully');
+    logger.info('SIGTERM received. Cleaning up...');
+    messageCleanupService.stop();
     server.close(() => {
-        logger.info('Process terminated');
         mongoose.connection.close(false, () => {
+            logger.info('Server closed. Database instance disconnected');
             process.exit(0);
         });
     });
-});
-
-export default server; 
+}); 
