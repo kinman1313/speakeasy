@@ -313,4 +313,6 @@ messageSchema.statics.getChatHistory = async function (options = {}) {
         .lean();
 };
 
-export const Message = mongoose.model('Message', messageSchema); 
+const Message = mongoose.model('Message', messageSchema);
+
+export default Message; 
