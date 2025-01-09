@@ -74,11 +74,4 @@ process.on('SIGTERM', () => {
             process.exit(0);
         });
     });
-});
-
-// Socket.IO CORS configuration
-io.set('cors', {
-    origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
-    methods: ["GET", "POST"],
-    credentials: true
 }); 

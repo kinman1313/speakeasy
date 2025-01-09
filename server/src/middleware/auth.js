@@ -6,7 +6,8 @@ import logger from '../utils/logger.js';
 const auth = async (req, res, next) => {
     try {
         // Get token from header
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        const authHeader = req.header('Authorization');
+        const token = authHeader ? authHeader.replace('Bearer ', '') : null;
 
         if (!token) {
             throw new Error();
@@ -57,7 +58,8 @@ const auth = async (req, res, next) => {
 // Optional authentication middleware
 const optionalAuth = async (req, res, next) => {
     try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        const authHeader = req.header('Authorization');
+        const token = authHeader ? authHeader.replace('Bearer ', '') : null;
 
         if (token) {
             try {
