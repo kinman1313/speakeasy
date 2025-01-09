@@ -6,138 +6,132 @@ let initialized = false;
 let signalComponents = null;
 let initializationPromise = null;
 
-const initializeSignal = async () => {
+// Ensure Signal client is loaded before accessing any components
+const loadSignalClient = () => {
+    return SignalClient().catch(error => {
+        console.error('Error loading Signal client:', error);
+        throw error;
+    });
+};
+
+const createSignalComponents = (signal) => {
+    const KeyHelperModule = {
+        generateIdentityKeyPair: (...args) =>
+            signal.KeyHelper.generateIdentityKeyPair(...args).catch(error => {
+                console.error('Error in generateIdentityKeyPair:', error);
+                throw error;
+            }),
+        generateRegistrationId: (...args) =>
+            signal.KeyHelper.generateRegistrationId(...args).catch(error => {
+                console.error('Error in generateRegistrationId:', error);
+                throw error;
+            }),
+        generatePreKey: (...args) =>
+            signal.KeyHelper.generatePreKey(...args).catch(error => {
+                console.error('Error in generatePreKey:', error);
+                throw error;
+            }),
+        generateSignedPreKey: (...args) =>
+            signal.KeyHelper.generateSignedPreKey(...args).catch(error => {
+                console.error('Error in generateSignedPreKey:', error);
+                throw error;
+            })
+    };
+
+    return {
+        KeyHelper: KeyHelperModule,
+        SessionBuilder: class SessionBuilderWrapper extends signal.SessionBuilder {
+            constructor(...args) {
+                try {
+                    super(...args);
+                } catch (error) {
+                    console.error('Error in SessionBuilder constructor:', error);
+                    throw error;
+                }
+            }
+        },
+        SessionCipher: class SessionCipherWrapper extends signal.SessionCipher {
+            constructor(...args) {
+                try {
+                    super(...args);
+                } catch (error) {
+                    console.error('Error in SessionCipher constructor:', error);
+                    throw error;
+                }
+            }
+
+            encrypt(...args) {
+                return super.encrypt(...args).catch(error => {
+                    console.error('Error in encrypt:', error);
+                    throw error;
+                });
+            }
+
+            decrypt(...args) {
+                return super.decrypt(...args).catch(error => {
+                    console.error('Error in decrypt:', error);
+                    throw error;
+                });
+            }
+        },
+        SignalProtocolAddress: class SignalProtocolAddressWrapper extends signal.SignalProtocolAddress {
+            constructor(...args) {
+                try {
+                    super(...args);
+                } catch (error) {
+                    console.error('Error in SignalProtocolAddress constructor:', error);
+                    throw error;
+                }
+            }
+        }
+    };
+};
+
+const initializeSignal = () => {
     if (initializationPromise) {
         return initializationPromise;
     }
 
-    initializationPromise = new Promise(async (resolve, reject) => {
+    initializationPromise = new Promise((resolve, reject) => {
         if (initialized && signalComponents) {
             resolve(signalComponents);
             return;
         }
 
-        try {
-            // Initialize the Signal client with retries
-            let signal = null;
-            let retries = 3;
-
-            while (retries > 0 && !signal) {
-                try {
-                    signal = await SignalClient();
-                    break;
-                } catch (error) {
-                    console.warn(`Signal initialization attempt failed, ${retries - 1} retries left:`, error);
-                    retries--;
-                    if (retries === 0) throw error;
-                    await new Promise(r => setTimeout(r, 1000)); // Wait 1 second between retries
-                }
-            }
-
-            if (!signal) {
-                throw new Error('Failed to initialize Signal client after multiple attempts');
-            }
-
-            // Create components object with proper error handling
-            signalComponents = {
-                KeyHelper: {
-                    generateIdentityKeyPair: async (...args) => {
-                        try {
-                            return await signal.KeyHelper.generateIdentityKeyPair(...args);
-                        } catch (error) {
-                            console.error('Error in generateIdentityKeyPair:', error);
-                            throw error;
-                        }
-                    },
-                    generateRegistrationId: async (...args) => {
-                        try {
-                            return await signal.KeyHelper.generateRegistrationId(...args);
-                        } catch (error) {
-                            console.error('Error in generateRegistrationId:', error);
-                            throw error;
-                        }
-                    },
-                    generatePreKey: async (...args) => {
-                        try {
-                            return await signal.KeyHelper.generatePreKey(...args);
-                        } catch (error) {
-                            console.error('Error in generatePreKey:', error);
-                            throw error;
-                        }
-                    },
-                    generateSignedPreKey: async (...args) => {
-                        try {
-                            return await signal.KeyHelper.generateSignedPreKey(...args);
-                        } catch (error) {
-                            console.error('Error in generateSignedPreKey:', error);
-                            throw error;
-                        }
-                    }
-                },
-                SessionBuilder: class extends signal.SessionBuilder {
-                    constructor(...args) {
-                        try {
-                            super(...args);
-                        } catch (error) {
-                            console.error('Error in SessionBuilder constructor:', error);
-                            throw error;
-                        }
-                    }
-                },
-                SessionCipher: class extends signal.SessionCipher {
-                    constructor(...args) {
-                        try {
-                            super(...args);
-                        } catch (error) {
-                            console.error('Error in SessionCipher constructor:', error);
-                            throw error;
-                        }
-                    }
-
-                    async encrypt(...args) {
-                        try {
-                            return await super.encrypt(...args);
-                        } catch (error) {
-                            console.error('Error in encrypt:', error);
-                            throw error;
-                        }
-                    }
-
-                    async decrypt(...args) {
-                        try {
-                            return await super.decrypt(...args);
-                        } catch (error) {
-                            console.error('Error in decrypt:', error);
-                            throw error;
-                        }
-                    }
-                },
-                SignalProtocolAddress: signal.SignalProtocolAddress
-            };
-
-            initialized = true;
-            resolve(signalComponents);
-        } catch (error) {
-            console.error('Failed to initialize Signal Protocol:', error);
-            initialized = false;
-            signalComponents = null;
-            initializationPromise = null;
-            reject(error);
-        }
+        loadSignalClient()
+            .then(signal => {
+                signalComponents = createSignalComponents(signal);
+                initialized = true;
+                resolve(signalComponents);
+            })
+            .catch(error => {
+                console.error('Failed to initialize Signal Protocol:', error);
+                initialized = false;
+                signalComponents = null;
+                initializationPromise = null;
+                reject(error);
+            });
     });
 
     return initializationPromise;
 };
 
-// Export the initialization function
-export const getSignalComponents = async () => {
-    try {
-        return await initializeSignal();
-    } catch (error) {
+// Export the initialization function with proper error handling
+export const getSignalComponents = () => {
+    return initializeSignal().then(components => {
+        if (!components) {
+            throw new Error('Signal components not properly initialized');
+        }
+        return components;
+    }).catch(error => {
         console.error('Error getting Signal components:', error);
         throw error;
-    }
+    });
 };
 
-// Export the entire SignalClient for advanced usage
-export default SignalClient; 
+// Export a pre-initialized Signal client to prevent timing issues
+export default {
+    init() {
+        return loadSignalClient();
+    }
+}; 
