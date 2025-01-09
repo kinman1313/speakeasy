@@ -1,5 +1,14 @@
 // This is a wrapper for the Signal Protocol library to ensure it works within Create React App's src directory
-import * as SignalClient from '@signalapp/libsignal-client';
+let SignalClient;
+
+// Initialize Signal client immediately to avoid temporal dead zone issues
+(async function loadSignalClient() {
+    try {
+        SignalClient = (await import('@signalapp/libsignal-client')).default;
+    } catch (error) {
+        console.error('Failed to load Signal client:', error);
+    }
+})();
 
 // Error types for better error handling
 export const ErrorTypes = {
@@ -23,6 +32,21 @@ export class SignalError extends Error {
 // Initialize Signal client with proper error handling
 let signalInstance = null;
 let signalComponents = null;
+let initializationPromise = null;
+
+async function waitForSignalClient(timeout = 5000) {
+    const start = Date.now();
+    while (!SignalClient) {
+        if (Date.now() - start > timeout) {
+            throw new SignalError(
+                ErrorTypes.INITIALIZATION_ERROR,
+                'Timeout waiting for Signal client to load'
+            );
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return SignalClient;
+}
 
 async function initializeSignalClient() {
     if (signalInstance) {
@@ -30,8 +54,8 @@ async function initializeSignalClient() {
     }
 
     try {
-        const SignalModule = SignalClient.default || SignalClient;
-        signalInstance = await (typeof SignalModule === 'function' ? SignalModule() : Promise.resolve(SignalModule));
+        const client = await waitForSignalClient();
+        signalInstance = typeof client === 'function' ? await client() : client;
         return signalInstance;
     } catch (error) {
         console.error('Failed to initialize Signal client:', error);
@@ -211,18 +235,27 @@ export async function getSignalComponents() {
         return signalComponents;
     }
 
-    try {
-        const signal = await initializeSignalClient();
-        signalComponents = await createComponents(signal);
-        return signalComponents;
-    } catch (error) {
-        if (error instanceof SignalError) {
-            throw error;
-        }
-        throw new SignalError(
-            ErrorTypes.INITIALIZATION_ERROR,
-            'Failed to get Signal components',
-            error
-        );
+    if (initializationPromise) {
+        return initializationPromise;
     }
+
+    initializationPromise = (async () => {
+        try {
+            const signal = await initializeSignalClient();
+            signalComponents = await createComponents(signal);
+            return signalComponents;
+        } catch (error) {
+            initializationPromise = null;
+            if (error instanceof SignalError) {
+                throw error;
+            }
+            throw new SignalError(
+                ErrorTypes.INITIALIZATION_ERROR,
+                'Failed to get Signal components',
+                error
+            );
+        }
+    })();
+
+    return initializationPromise;
 } 

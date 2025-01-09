@@ -5,24 +5,11 @@ services:
     env: node
     plan: free
     branch: main
-    buildCommand: |
-      cd client
-      npm install -g cross-env
-      npm install
-      npm rebuild @signalapp/libsignal-client --build-from-source
-      npm run build
-      mkdir -p /opt/render/project/src/client
-      cp -r build/* /opt/render/project/src/client/
-      cp server.js /opt/render/project/src/client/
-      cp package.json /opt/render/project/src/client/
-      cd /opt/render/project/src/client
-      npm install express compression helmet
-    startCommand: cd /opt/render/project/src/client && node server.js
+    buildCommand: cd client && npm install && npm run build
+    startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
         value: production
-      - key: REACT_APP_GIPHY_API_KEY
-        sync: false
       - key: PORT
         value: 3000
       - key: REACT_APP_API_URL
@@ -38,12 +25,7 @@ services:
     env: node
     plan: free
     branch: main
-    buildCommand: |
-      cd server
-      npm install -g cross-env
-      npm install
-      npm rebuild @signalapp/libsignal-client --build-from-source
-      npm run build
+    buildCommand: cd server && npm install && npm run build
     startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
@@ -58,17 +40,5 @@ services:
         sync: false
       - key: CLIENT_URL
         value: https://speakeasy-client.onrender.com
-      - key: SMTP_HOST
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: 587
-      - key: SMTP_SECURE
-        value: "false"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: SMTP_FROM
-        sync: false
       - key: SIGNAL_SERVER_KEY
         sync: false
