@@ -32,14 +32,14 @@ app.use(helmet({
 // Compression middleware
 app.use(compression());
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'build'), {
+// Serve static files from current directory
+app.use(express.static(__dirname, {
     etag: true,
     lastModified: true,
-    setHeaders: (res, path) => {
-        if (path.endsWith('.html')) {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
             res.setHeader('Cache-Control', 'no-cache');
-        } else if (path.endsWith('.js') || path.endsWith('.css')) {
+        } else if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
             res.setHeader('Cache-Control', 'public, max-age=31536000');
         }
     }
@@ -47,16 +47,17 @@ app.use(express.static(path.join(__dirname, 'build'), {
 
 // Handle all routes for SPA
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Error:', err.stack);
     res.status(500).send('Something broke!');
 });
 
 // Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Serving files from: ${__dirname}`);
 }); 

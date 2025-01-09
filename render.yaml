@@ -7,11 +7,13 @@ services:
     region: ohio
     branch: main
     buildCommand: |
+      cd client
       npm install -g cross-env
-      cd client && npm install
+      npm install
       npm rebuild @signalapp/libsignal-client --build-from-source
       npm run build
-    startCommand: cd client && npm run serve
+      cp -r build/* .
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -34,8 +36,9 @@ services:
     region: ohio
     branch: main
     buildCommand: |
+      cd server
       npm install -g cross-env
-      cd server && npm install
+      npm install
       npm rebuild @signalapp/libsignal-client --build-from-source
       npm run build
     startCommand: cd server && npm start
