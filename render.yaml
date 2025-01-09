@@ -4,7 +4,6 @@ services:
     name: speakeasy-client
     env: node
     plan: free
-    region: ohio
     branch: main
     buildCommand: |
       cd client
@@ -12,8 +11,13 @@ services:
       npm install
       npm rebuild @signalapp/libsignal-client --build-from-source
       npm run build
-      cp -r build/* .
-    startCommand: node server.js
+      mkdir -p /opt/render/project/src/client
+      cp -r build/* /opt/render/project/src/client/
+      cp server.js /opt/render/project/src/client/
+      cp package.json /opt/render/project/src/client/
+      cd /opt/render/project/src/client
+      npm install express compression helmet
+    startCommand: cd /opt/render/project/src/client && node server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -33,7 +37,6 @@ services:
     name: speakeasy-server
     env: node
     plan: free
-    region: ohio
     branch: main
     buildCommand: |
       cd server
