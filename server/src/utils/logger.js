@@ -1,5 +1,4 @@
-import winston from 'winston';
-import path from 'path';
+const winston = require('winston');
 
 const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
@@ -13,25 +12,23 @@ const logger = winston.createLogger({
                 winston.format.colorize(),
                 winston.format.simple()
             )
+        }),
+        new winston.transports.File({
+            filename: 'error.log',
+            level: 'error',
+            dirname: 'logs'
+        }),
+        new winston.transports.File({
+            filename: 'combined.log',
+            dirname: 'logs'
         })
     ]
 });
 
-// Add request logging middleware
-const requestMiddleware = (req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-        const duration = Date.now() - start;
-        logger.info('Request completed', {
-            method: req.method,
-            url: req.url,
-            status: res.statusCode,
-            duration: `${duration}ms`
-        });
-    });
-    next();
-};
+// Create logs directory if it doesn't exist
+const fs = require('fs');
+if (!fs.existsSync('logs')) {
+    fs.mkdirSync('logs');
+}
 
-logger.requestMiddleware = requestMiddleware;
-
-export default logger; 
+module.exports = logger; 
