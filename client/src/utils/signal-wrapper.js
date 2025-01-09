@@ -1,5 +1,5 @@
 // This is a wrapper for the Signal Protocol library to ensure it works within Create React App's src directory
-import SignalClient from '@signalapp/libsignal-client';
+let SignalClient;
 
 // Initialize Signal Protocol components with proper state management
 let signalInstance = null;
@@ -8,7 +8,7 @@ let isInitializing = false;
 let initializationPromise = null;
 
 // Error types for better error handling
-const ErrorTypes = {
+export const ErrorTypes = {
     INITIALIZATION_ERROR: 'INITIALIZATION_ERROR',
     INSTANCE_ERROR: 'INSTANCE_ERROR',
     COMPONENT_ERROR: 'COMPONENT_ERROR',
@@ -17,7 +17,7 @@ const ErrorTypes = {
 };
 
 // Custom error class for Signal-related errors
-class SignalError extends Error {
+export class SignalError extends Error {
     constructor(type, message, originalError = null) {
         super(message);
         this.name = 'SignalError';
@@ -36,6 +36,20 @@ const wrapAsync = async (fn, errorType, errorMessage) => {
     }
 };
 
+// Dynamic import of Signal client to prevent initialization errors
+const loadSignalClient = async () => {
+    try {
+        SignalClient = (await import('@signalapp/libsignal-client')).default;
+        return SignalClient;
+    } catch (error) {
+        throw new SignalError(
+            ErrorTypes.INITIALIZATION_ERROR,
+            'Failed to load Signal client module',
+            error
+        );
+    }
+};
+
 // Load Signal client with retries and proper error handling
 const getSignalInstance = async () => {
     if (signalInstance) {
@@ -47,6 +61,10 @@ const getSignalInstance = async () => {
 
     for (let i = 0; i < maxRetries; i++) {
         try {
+            if (!SignalClient) {
+                await loadSignalClient();
+            }
+
             if (typeof SignalClient === 'function') {
                 signalInstance = await SignalClient();
             } else {
@@ -247,9 +265,6 @@ export const getSignalComponents = async () => {
         );
     }
 };
-
-// Export error types and classes for proper error handling in consuming code
-export { ErrorTypes, SignalError };
 
 // Export Signal client for direct access if needed
 export default SignalClient; 
