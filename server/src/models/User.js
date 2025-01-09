@@ -1,20 +1,20 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: [true, 'Username is required'],
+        required: true,
         unique: true,
         trim: true,
-        minlength: [3, 'Username must be at least 3 characters long'],
-        maxlength: [30, 'Username cannot exceed 30 characters']
+        minlength: 3,
+        maxlength: 30
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
+        required: true,
         unique: true,
         trim: true,
         lowercase: true,
@@ -22,8 +22,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
-        minlength: [8, 'Password must be at least 8 characters long'],
+        required: true,
+        minlength: 8,
         select: false
     },
     avatar: {
@@ -34,11 +34,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['online', 'offline', 'away'],
         default: 'offline'
-    },
-    bio: {
-        type: String,
-        maxlength: [200, 'Bio cannot exceed 200 characters'],
-        default: ''
     },
     friends: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -64,28 +59,10 @@ const userSchema = new mongoose.Schema({
     verificationTokenExpires: Date,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    identityKey: {
-        type: String,
-        select: false
-    },
-    signedPreKey: {
-        type: String,
-        select: false
-    },
-    oneTimePreKeys: [{
-        keyId: Number,
-        key: String
-    }],
-    registrationId: {
-        type: Number,
-        select: false
-    },
-    deviceId: {
-        type: Number,
-        default: 1
-    }
-}, {
-    timestamps: true
+    identityKey: String,
+    signedPreKey: Object,
+    oneTimePreKeys: [Object],
+    registrationId: String
 });
 
 // Pre-save middleware to hash password
@@ -93,6 +70,7 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         return next();
     }
+
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
@@ -102,40 +80,7 @@ userSchema.pre('save', async function (next) {
     }
 });
 
-// Instance methods
 userSchema.methods = {
-    async matchPassword(enteredPassword) {
-        return await bcrypt.compare(enteredPassword, this.password);
-    },
-
-    generateAuthToken() {
-        return jwt.sign(
-            { id: this._id },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRE }
-        );
-    },
-
-    generateVerificationToken() {
-        const token = crypto.randomBytes(32).toString('hex');
-        this.verificationToken = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
-        this.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-        return token;
-    },
-
-    generateResetPasswordToken() {
-        const token = crypto.randomBytes(32).toString('hex');
-        this.resetPasswordToken = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
-        this.resetPasswordExpires = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
-        return token;
-    },
-
     async updateSignalKeys(identityKey, signedPreKey, oneTimePreKeys, registrationId) {
         this.identityKey = identityKey;
         this.signedPreKey = signedPreKey;
@@ -178,6 +123,38 @@ userSchema.methods = {
     async unblockUser(userId) {
         this.blockedUsers = this.blockedUsers.filter(id => id.toString() !== userId.toString());
         await this.save();
+    },
+
+    async matchPassword(enteredPassword) {
+        return await bcrypt.compare(enteredPassword, this.password);
+    },
+
+    generateAuthToken() {
+        return jwt.sign(
+            { id: this._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+    },
+
+    generateVerificationToken() {
+        const token = crypto.randomBytes(32).toString('hex');
+        this.verificationToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        this.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+        return token;
+    },
+
+    generateResetPasswordToken() {
+        const token = crypto.randomBytes(32).toString('hex');
+        this.resetPasswordToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        this.resetPasswordExpires = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+        return token;
     }
 };
 
@@ -186,4 +163,6 @@ userSchema.index({ username: 1 });
 userSchema.index({ email: 1 });
 userSchema.index({ createdAt: 1 });
 
-export const User = mongoose.model('User', userSchema); 
+const User = mongoose.model('User', userSchema);
+
+module.exports = User; 

@@ -1,290 +1,288 @@
-import express from 'express';
-import expressValidator from 'express-validator';
-const { body, validationResult } = expressValidator;
-import { auth } from '../middleware/auth.js';
-import userService from '../services/userService.js';
-import logger from '../utils/logger.js';
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// Validation middleware
-const validateRegistration = [
-    body('username')
-        .trim()
-        .isLength({ min: 3, max: 30 })
-        .withMessage('Username must be between 3 and 30 characters')
-        .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Username can only contain letters, numbers, and underscores'),
-    body('email')
-        .trim()
-        .isEmail()
-        .withMessage('Please enter a valid email')
-        .normalizeEmail(),
-    body('password')
-        .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long')
-        .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
-        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
-];
-
-const validateLogin = [
-    body('email').trim().isEmail().withMessage('Please enter a valid email'),
-    body('password').notEmpty().withMessage('Password is required')
-];
-
-const validatePasswordReset = [
-    body('password')
-        .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long')
-        .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
-        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
-];
-
-// Routes
-
 // Register user
-router.post('/register', validateRegistration, async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+router.post(
+    '/register',
+    [
+        body('username')
+            .trim()
+            .isLength({ min: 3, max: 30 })
+            .withMessage('Username must be between 3 and 30 characters'),
+        body('email')
+            .isEmail()
+            .normalizeEmail()
+            .withMessage('Please enter a valid email'),
+        body('password')
+            .isLength({ min: 8 })
+            .withMessage('Password must be at least 8 characters')
+            .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
+            .withMessage('Password must include one uppercase, one lowercase, one number and one special character')
+    ],
+    async (req, res) => {
+        try {
+            // Check for validation errors
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { username, email, password } = req.body;
+
+            // Check if user already exists
+            let user = await User.findOne({ $or: [{ email }, { username }] });
+            if (user) {
+                return res.status(400).json({
+                    message: 'User already exists'
+                });
+            }
+
+            // Create new user
+            user = new User({
+                username,
+                email,
+                password
+            });
+
+            // Save user to database
+            await user.save();
+
+            // Generate auth token
+            const token = user.generateAuthToken();
+
+            res.status(201).json({
+                token,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            });
+        } catch (error) {
+            logger.error('Registration error:', error);
+            res.status(500).json({
+                message: 'Server error'
+            });
         }
-
-        const { username, email, password } = req.body;
-        const result = await userService.register({ username, email, password });
-
-        res.status(201).json({
-            message: 'Registration successful',
-            user: result.user,
-            token: result.token
-        });
-    } catch (error) {
-        logger.error('Registration error:', error);
-        res.status(400).json({
-            message: error.message || 'Registration failed'
-        });
     }
-});
+);
 
 // Login user
-router.post('/login', validateLogin, async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+router.post(
+    '/login',
+    [
+        body('email').isEmail().normalizeEmail(),
+        body('password').exists()
+    ],
+    async (req, res) => {
+        try {
+            // Check for validation errors
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { email, password } = req.body;
+
+            // Find user
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(400).json({
+                    message: 'Invalid credentials'
+                });
+            }
+
+            // Check password
+            const isMatch = await user.matchPassword(password);
+            if (!isMatch) {
+                return res.status(400).json({
+                    message: 'Invalid credentials'
+                });
+            }
+
+            // Generate auth token
+            const token = user.generateAuthToken();
+
+            res.json({
+                token,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            });
+        } catch (error) {
+            logger.error('Login error:', error);
+            res.status(500).json({
+                message: 'Server error'
+            });
         }
-
-        const { email, password } = req.body;
-        const result = await userService.login(email, password);
-
-        res.json({
-            message: 'Login successful',
-            user: result.user,
-            token: result.token
-        });
-    } catch (error) {
-        logger.error('Login error:', error);
-        res.status(401).json({
-            message: error.message || 'Invalid credentials'
-        });
     }
-});
+);
 
-// Verify email
-router.get('/verify-email/:token', async (req, res) => {
+// Get current user
+router.get('/me', auth, async (req, res) => {
     try {
-        const { token } = req.params;
-        const user = await userService.verifyEmail(token);
-
-        res.json({
-            message: 'Email verified successfully',
-            user
-        });
-    } catch (error) {
-        logger.error('Email verification error:', error);
-        res.status(400).json({
-            message: error.message || 'Email verification failed'
-        });
-    }
-});
-
-// Request password reset
-router.post('/request-password-reset', async (req, res) => {
-    try {
-        const { email } = req.body;
-        const resetToken = await userService.requestPasswordReset(email);
-
-        res.json({
-            message: 'Password reset email sent',
-            resetToken // In production, this should be sent via email
-        });
-    } catch (error) {
-        logger.error('Password reset request error:', error);
-        res.status(400).json({
-            message: error.message || 'Password reset request failed'
-        });
-    }
-});
-
-// Reset password
-router.post('/reset-password/:token', validatePasswordReset, async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { token } = req.params;
-        const { password } = req.body;
-        const user = await userService.resetPassword(token, password);
-
-        res.json({
-            message: 'Password reset successful',
-            user
-        });
-    } catch (error) {
-        logger.error('Password reset error:', error);
-        res.status(400).json({
-            message: error.message || 'Password reset failed'
-        });
-    }
-});
-
-// Protected routes (require authentication)
-
-// Get user profile
-router.get('/profile', auth, async (req, res) => {
-    try {
-        const user = await userService.getProfile(req.user.id);
+        const user = await User.findById(req.user.id).select('-password');
         res.json(user);
     } catch (error) {
-        logger.error('Get profile error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to get profile'
+        logger.error('Get current user error:', error);
+        res.status(500).json({
+            message: 'Server error'
         });
     }
 });
 
 // Update user profile
-router.put('/profile', auth, async (req, res) => {
-    try {
-        const user = await userService.updateProfile(req.user.id, req.body);
-        res.json(user);
-    } catch (error) {
-        logger.error('Update profile error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to update profile'
-        });
-    }
-});
+router.put(
+    '/me',
+    [auth,
+        body('username')
+            .optional()
+            .trim()
+            .isLength({ min: 3, max: 30 }),
+        body('email')
+            .optional()
+            .isEmail()
+            .normalizeEmail(),
+        body('password')
+            .optional()
+            .isLength({ min: 8 })
+            .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
+    ],
+    async (req, res) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
 
-// Change password
-router.put('/change-password', auth, validatePasswordReset, async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            const user = await User.findById(req.user.id);
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found'
+                });
+            }
+
+            // Update fields
+            if (req.body.username) user.username = req.body.username;
+            if (req.body.email) user.email = req.body.email;
+            if (req.body.password) user.password = req.body.password;
+
+            await user.save();
+
+            res.json({
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            });
+        } catch (error) {
+            logger.error('Update profile error:', error);
+            res.status(500).json({
+                message: 'Server error'
+            });
         }
-
-        const { currentPassword, newPassword } = req.body;
-        await userService.changePassword(req.user.id, currentPassword, newPassword);
-
-        res.json({
-            message: 'Password changed successfully'
-        });
-    } catch (error) {
-        logger.error('Change password error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to change password'
-        });
     }
-});
+);
 
-// Search users
-router.get('/search', auth, async (req, res) => {
-    try {
-        const { query } = req.query;
-        const users = await userService.searchUsers(query, req.user.id);
-        res.json(users);
-    } catch (error) {
-        logger.error('Search users error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to search users'
-        });
+// Request password reset
+router.post(
+    '/forgot-password',
+    [
+        body('email')
+            .isEmail()
+            .normalizeEmail()
+    ],
+    async (req, res) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { email } = req.body;
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found'
+                });
+            }
+
+            // Generate reset token
+            const resetToken = user.generateResetPasswordToken();
+            await user.save();
+
+            // Send reset email
+            // TODO: Implement email sending
+
+            res.json({
+                message: 'Password reset email sent'
+            });
+        } catch (error) {
+            logger.error('Forgot password error:', error);
+            res.status(500).json({
+                message: 'Server error'
+            });
+        }
     }
-});
+);
 
-// Friend requests
-router.post('/friend-request/:userId', auth, async (req, res) => {
-    try {
-        await userService.sendFriendRequest(req.user.id, req.params.userId);
-        res.json({
-            message: 'Friend request sent successfully'
-        });
-    } catch (error) {
-        logger.error('Send friend request error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to send friend request'
-        });
+// Reset password
+router.post(
+    '/reset-password/:token',
+    [
+        body('password')
+            .isLength({ min: 8 })
+            .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
+    ],
+    async (req, res) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { token } = req.params;
+            const { password } = req.body;
+
+            // Find user by reset token
+            const user = await User.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+
+            if (!user) {
+                return res.status(400).json({
+                    message: 'Invalid or expired reset token'
+                });
+            }
+
+            // Update password
+            user.password = password;
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+
+            res.json({
+                message: 'Password reset successful'
+            });
+        } catch (error) {
+            logger.error('Reset password error:', error);
+            res.status(500).json({
+                message: 'Server error'
+            });
+        }
     }
-});
+);
 
-router.post('/accept-friend-request/:userId', auth, async (req, res) => {
-    try {
-        await userService.acceptFriendRequest(req.user.id, req.params.userId);
-        res.json({
-            message: 'Friend request accepted successfully'
-        });
-    } catch (error) {
-        logger.error('Accept friend request error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to accept friend request'
-        });
-    }
-});
-
-// Remove friend
-router.delete('/friend/:userId', auth, async (req, res) => {
-    try {
-        await userService.removeFriend(req.user.id, req.params.userId);
-        res.json({
-            message: 'Friend removed successfully'
-        });
-    } catch (error) {
-        logger.error('Remove friend error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to remove friend'
-        });
-    }
-});
-
-// Block/Unblock user
-router.post('/block/:userId', auth, async (req, res) => {
-    try {
-        await userService.blockUser(req.user.id, req.params.userId);
-        res.json({
-            message: 'User blocked successfully'
-        });
-    } catch (error) {
-        logger.error('Block user error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to block user'
-        });
-    }
-});
-
-router.post('/unblock/:userId', auth, async (req, res) => {
-    try {
-        await userService.unblockUser(req.user.id, req.params.userId);
-        res.json({
-            message: 'User unblocked successfully'
-        });
-    } catch (error) {
-        logger.error('Unblock user error:', error);
-        res.status(400).json({
-            message: error.message || 'Failed to unblock user'
-        });
-    }
-});
-
-export default router; 
+module.exports = router; 
