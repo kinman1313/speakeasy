@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -63,6 +63,8 @@ const userSchema = new mongoose.Schema({
     signedPreKey: Object,
     oneTimePreKeys: [Object],
     registrationId: String
+}, {
+    timestamps: true
 });
 
 // Pre-save middleware to hash password
@@ -165,4 +167,4 @@ userSchema.index({ createdAt: 1 });
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = User; 
+export default User; 

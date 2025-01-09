@@ -1,7 +1,7 @@
-const winston = require('winston');
+import winston from 'winston';
 
 const logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
+    level: 'info',
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json()
@@ -13,22 +13,9 @@ const logger = winston.createLogger({
                 winston.format.simple()
             )
         }),
-        new winston.transports.File({
-            filename: 'error.log',
-            level: 'error',
-            dirname: 'logs'
-        }),
-        new winston.transports.File({
-            filename: 'combined.log',
-            dirname: 'logs'
-        })
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
     ]
 });
 
-// Create logs directory if it doesn't exist
-const fs = require('fs');
-if (!fs.existsSync('logs')) {
-    fs.mkdirSync('logs');
-}
-
-module.exports = logger; 
+export default logger; 

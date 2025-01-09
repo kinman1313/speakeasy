@@ -1,10 +1,10 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -285,4 +285,4 @@ router.post(
     }
 );
 
-module.exports = router; 
+export default router; 

@@ -1,4 +1,5 @@
-const logger = require('../utils/logger');
+import logger from '../utils/logger.js';
+import Message from '../models/Message.js';
 
 class MessageCleanupService {
     constructor(io) {
@@ -32,7 +33,6 @@ class MessageCleanupService {
 
     async cleanupExpiredMessages() {
         try {
-            const Message = require('../models/Message');
             const now = new Date();
 
             // Find and delete expired messages
@@ -63,4 +63,4 @@ class MessageCleanupService {
     }
 }
 
-module.exports = MessageCleanupService; 
+export default MessageCleanupService; 

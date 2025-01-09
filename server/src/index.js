@@ -1,15 +1,18 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const compression = require('compression');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const winston = require('winston');
-const { rateLimit } = require('express-rate-limit');
-const MessageCleanupService = require('./services/messageCleanupService');
+import dotenv from 'dotenv';
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import compression from 'compression';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import winston from 'winston';
+import { rateLimit } from 'express-rate-limit';
+import MessageCleanupService from './services/messageCleanupService.js';
+import userRoutes from './routes/users.js';
+
+dotenv.config();
 
 // Configure Winston logger
 const logger = winston.createLogger({
@@ -25,12 +28,9 @@ const logger = winston.createLogger({
     ]
 });
 
-// Import routes
-const userRoutes = require('./routes/users');
-
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new Server(server, {
     cors: {
         origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
         methods: ["GET", "POST"],
