@@ -1,16 +1,18 @@
 {
-    "name": "signal-chat-server",
+    "name": "speakeasy-server",
     "version": "1.0.0",
-    "description": "Signal Protocol chat server",
+    "description": "Speakeasy Chat Application Server",
     "main": "src/index.js",
     "scripts": {
-        "start": "node src/index.js",
+        "start": "node dist/index.js",
         "dev": "nodemon src/index.js",
         "lint": "eslint src/**/*.js",
         "format": "prettier --write \"src/**/*.js\"",
-        "test": "jest"
+        "test": "jest",
+        "build": "babel src -d dist"
     },
     "dependencies": {
+        "@babel/runtime": "^7.23.8",
         "@signalapp/libsignal-client": "^0.32.1",
         "axios": "^1.6.7",
         "bcryptjs": "^2.4.3",
@@ -31,6 +33,10 @@
         "zod": "^3.22.2"
     },
     "devDependencies": {
+        "@babel/cli": "^7.23.4",
+        "@babel/core": "^7.23.7",
+        "@babel/plugin-transform-runtime": "^7.23.7",
+        "@babel/preset-env": "^7.23.8",
         "eslint": "^8.47.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.0",

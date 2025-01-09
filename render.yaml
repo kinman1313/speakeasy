@@ -22,7 +22,7 @@ services:
     name: speakeasy-server
     env: node
     plan: free
-    buildCommand: cd server && npm install
+    buildCommand: cd server && npm install && npm run build
     startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
@@ -36,7 +36,7 @@ services:
       - key: GIPHY_API_KEY
         sync: false
       - key: CLIENT_URL
-        value: https://speakeasy-chat.onrender.com
+        value: https://speakeasy-client.onrender.com
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
