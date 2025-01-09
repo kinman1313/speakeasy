@@ -5,12 +5,12 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "dev": "nodemon --experimental-modules src/index.js",
+        "dev": "nodemon src/index.js",
         "lint": "eslint src/**/*.js",
         "format": "prettier --write \"src/**/*.js\"",
         "test": "jest",
-        "build": "rm -rf dist && babel src -d dist",
-        "clean": "rm -rf dist"
+        "build": "npx rimraf dist && npx babel src -d dist --copy-files",
+        "clean": "rimraf dist"
     },
     "dependencies": {
         "@babel/runtime": "^7.23.8",
@@ -36,14 +36,8 @@
     "devDependencies": {
         "@babel/cli": "^7.23.4",
         "@babel/core": "^7.23.7",
-        "@babel/plugin-transform-class-properties": "^7.23.3",
-        "@babel/plugin-transform-nullish-coalescing-operator": "^7.23.4",
-        "@babel/plugin-transform-object-rest-spread": "^7.23.4",
-        "@babel/plugin-transform-optional-chaining": "^7.23.4",
-        "@babel/plugin-transform-private-methods": "^7.23.3",
         "@babel/plugin-transform-runtime": "^7.23.7",
         "@babel/preset-env": "^7.23.8",
-        "core-js": "^3.35.0",
         "eslint": "^8.47.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.0",

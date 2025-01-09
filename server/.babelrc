@@ -4,17 +4,12 @@
             "@babel/preset-env",
             {
                 "targets": {
-                    "node": "current"
-                }
+                "node": "18"
             }
-        ]
+        }
+    ]
     ],
     "plugins": [
-        "@babel/plugin-transform-runtime",
-        "@babel/plugin-transform-class-properties",
-        "@babel/plugin-transform-object-rest-spread",
-        "@babel/plugin-transform-optional-chaining",
-        "@babel/plugin-transform-nullish-coalescing-operator",
-        "@babel/plugin-transform-private-methods"
+        "@babel/plugin-transform-runtime"
     ]
 }
