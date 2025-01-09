@@ -18,9 +18,6 @@ module.exports = function override(config, env) {
             fs: false,
             util: require.resolve('util/'),
         },
-        alias: {
-            '@signalapp/libsignal-client': path.resolve(__dirname, 'src/utils/signal-wrapper.js')
-        },
         extensions: ['.js', '.jsx', '.json', '.wasm', '.mjs'],
         mainFields: ['browser', 'module', 'main']
     };
@@ -33,7 +30,8 @@ module.exports = function override(config, env) {
         }),
         new webpack.DefinePlugin({
             'process.env': JSON.stringify(process.env),
-            global: 'window'
+            'global': 'window',
+            'SIGNAL_SERVER_KEY': JSON.stringify(process.env.REACT_APP_SIGNAL_SERVER_KEY || '')
         })
     ];
 
@@ -46,7 +44,10 @@ module.exports = function override(config, env) {
                 resolve: {
                     fullySpecified: false
                 },
-                exclude: /node_modules\/(?!(@signalapp)\/).*/,
+                include: [
+                    path.resolve(__dirname, 'src'),
+                    path.resolve(__dirname, 'node_modules/@signalapp')
+                ],
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -57,7 +58,7 @@ module.exports = function override(config, env) {
                                 },
                                 useBuiltIns: 'usage',
                                 corejs: 3,
-                                modules: 'auto'
+                                modules: false
                             }]
                         ],
                         plugins: [
@@ -95,6 +96,33 @@ module.exports = function override(config, env) {
             optionalChaining: true,
             templateLiteral: true
         }
+    };
+
+    config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        chunkIds: 'deterministic',
+        splitChunks: {
+            chunks: 'all',
+            minSize: 20000,
+            minRemainingSize: 0,
+            minChunks: 1,
+            maxAsyncRequests: 30,
+            maxInitialRequests: 30,
+            enforceSizeThreshold: 50000,
+            cacheGroups: {
+                defaultVendors: {
+                    test: /[\\/]node_modules[\\/]/,
+                    priority: -10,
+                    reuseExistingChunk: true,
+                },
+                default: {
+                    minChunks: 2,
+                    priority: -20,
+                    reuseExistingChunk: true,
+                },
+            },
+        },
     };
 
     return config;
