@@ -1,91 +1,38 @@
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
-import LoadingScreen from '../components/LoadingScreen';
+import { AuthProvider } from '../contexts/AuthContext';
+import { SnackbarProvider } from '../contexts/SnackbarContext';
 import PrivateRoute from '../components/PrivateRoute';
-import PublicRoute from '../components/PublicRoute';
+import Layout from '../components/Layout';
+import Login from '../pages/auth/Login';
+import Register from '../pages/auth/Register';
+import ResetPassword from '../pages/auth/ResetPassword';
+import Chat from '../pages/chat/Chat';
+import NotFound from '../pages/NotFound';
 
-// Lazy load components
-const Login = lazy(() => import('../pages/auth/Login'));
-const Register = lazy(() => import('../pages/auth/Register'));
-const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
-const NewPassword = lazy(() => import('../pages/auth/NewPassword'));
-const Chat = lazy(() => import('../pages/chat/Chat'));
-const Profile = lazy(() => import('../pages/profile/Profile'));
-const Settings = lazy(() => import('../pages/settings/Settings'));
-const NotFound = lazy(() => import('../pages/NotFound'));
-
-function AppRoutes() {
+const AppRoutes = () => {
   return (
-    <Suspense fallback={<LoadingScreen />}>
-      <Routes>
-        {/* Public Routes */}
-        <Route
-          path='/login'
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path='/register'
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path='/reset-password'
-          element={
-            <PublicRoute>
-              <ResetPassword />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path='/reset-password/:token'
-          element={
-            <PublicRoute>
-              <NewPassword />
-            </PublicRoute>
-          }
-        />
-
-        {/* Protected Routes */}
-        <Route
-          path='/chat/*'
-          element={
-            <PrivateRoute>
-              <Chat />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path='/profile'
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path='/settings'
-          element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          }
-        />
-
-        {/* Redirect root to chat or login */}
-        <Route path='/' element={<Navigate to='/chat' replace />} />
-
-        {/* 404 Not Found */}
-        <Route path='*' element={<NotFound />} />
-      </Routes>
-    </Suspense>
+    <SnackbarProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                  <Layout>
+                    <Chat />
+                  </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
+    </SnackbarProvider>
   );
-}
+};
 
 export default AppRoutes;
