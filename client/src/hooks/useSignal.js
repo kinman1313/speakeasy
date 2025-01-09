@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSignalComponents } from '../utils/signal-wrapper';
+import { getSignalComponents, ErrorTypes, SignalError } from '../utils/signal-wrapper';
 import { SignalProtocolStore } from '../utils/SignalStore';
 import { useSnackbar } from './useSnackbar';
 
@@ -10,25 +10,53 @@ export function useSignal() {
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
   const [signalComponents, setSignalComponents] = useState(null);
+  const [error, setError] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
     useEffect(() => {
+      let mounted = true;
+
         const initSignal = async () => {
             try {
+              setIsInitializing(true);
               const components = await getSignalComponents();
-              setSignalComponents(components);
+              if (mounted) {
+                setSignalComponents(components);
+                setError(null);
+              }
             } catch (error) {
                 console.error('Error initializing Signal client:', error);
-                showSnackbar('Error initializing encryption', 'error');
+              if (mounted) {
+                setError(error);
+                if (error instanceof SignalError) {
+                  showSnackbar(`Encryption error: ${error.message}`, 'error');
+                } else {
+                  showSnackbar('Error initializing encryption', 'error');
+                }
+              }
+            } finally {
+              if (mounted) {
+                setIsInitializing(false);
+              }
             }
         };
+
         initSignal();
+
+      return () => {
+        mounted = false;
+      };
     }, [showSnackbar]);
 
   const encryptMessage = useCallback(
     async (recipientId, message) => {
       if (!signalComponents) {
-        throw new Error('Signal client not initialized');
+        throw new SignalError(
+          ErrorTypes.INITIALIZATION_ERROR,
+          'Signal client not initialized'
+        );
       }
+
       try {
           const { SessionBuilder, SessionCipher } = signalComponents;
           const sessionBuilder = new SessionBuilder(store, recipientId);
@@ -47,8 +75,12 @@ export function useSignal() {
   const decryptMessage = useCallback(
     async (senderId, encryptedMessage) => {
       if (!signalComponents) {
-        throw new Error('Signal client not initialized');
+        throw new SignalError(
+          ErrorTypes.INITIALIZATION_ERROR,
+          'Signal client not initialized'
+        );
       }
+
       try {
         const { SessionCipher } = signalComponents;
         const sessionCipher = new SessionCipher(store, senderId);
@@ -69,8 +101,12 @@ export function useSignal() {
 
   const generatePreKey = useCallback(async () => {
     if (!signalComponents) {
-      throw new Error('Signal client not initialized');
-      }
+      throw new SignalError(
+        ErrorTypes.INITIALIZATION_ERROR,
+        'Signal client not initialized'
+      );
+    }
+
     try {
         const { KeyHelper } = signalComponents;
         const keyId = Math.floor(Math.random() * 10000);
@@ -78,7 +114,7 @@ export function useSignal() {
         await store.storePreKey(keyId, keyPair.keyPair);
         return {
           keyId: keyPair.keyId,
-          publicKey: keyPair.keyPair.pubKey,
+          publicKey: keyPair.keyPair.pubKey
         };
       } catch (error) {
         console.error('Error generating pre-key:', error);
@@ -88,22 +124,26 @@ export function useSignal() {
   }, [signalComponents, showSnackbar]);
 
   const generateSignedPreKey = useCallback(
-    async identityKeyPair => {
+    async (identityKeyPair) => {
       if (!signalComponents) {
-        throw new Error('Signal client not initialized');
-      }
+          throw new SignalError(
+            ErrorTypes.INITIALIZATION_ERROR,
+            'Signal client not initialized'
+          );
+        }
+
       try {
           const { KeyHelper } = signalComponents;
           const keyId = Math.floor(Math.random() * 10000);
-        const signedKeyPair = await KeyHelper.generateSignedPreKey(
-          identityKeyPair,
-          keyId
-        );
-        await store.storeSignedPreKey(signedKeyPair.keyId, signedKeyPair.keyPair);
-        return {
-          keyId: signedKeyPair.keyId,
-          publicKey: signedKeyPair.keyPair.pubKey,
-          signature: signedKeyPair.signature,
+          const signedKeyPair = await KeyHelper.generateSignedPreKey(
+            identityKeyPair,
+            keyId
+          );
+          await store.storeSignedPreKey(signedKeyPair.keyId, signedKeyPair.keyPair);
+          return {
+            keyId: signedKeyPair.keyId,
+            publicKey: signedKeyPair.keyPair.pubKey,
+          signature: signedKeyPair.signature
         };
       } catch (error) {
         console.error('Error generating signed pre-key:', error);
@@ -116,8 +156,12 @@ export function useSignal() {
 
   const generateIdentityKeyPair = useCallback(async () => {
     if (!signalComponents) {
-      throw new Error('Signal client not initialized');
-      }
+      throw new SignalError(
+        ErrorTypes.INITIALIZATION_ERROR,
+        'Signal client not initialized'
+      );
+    }
+
     try {
         const { KeyHelper } = signalComponents;
         const identityKeyPair = await KeyHelper.generateIdentityKeyPair();
@@ -132,8 +176,12 @@ export function useSignal() {
 
   const generateRegistrationId = useCallback(async () => {
     if (!signalComponents) {
-      throw new Error('Signal client not initialized');
-      }
+      throw new SignalError(
+        ErrorTypes.INITIALIZATION_ERROR,
+        'Signal client not initialized'
+      );
+    }
+
     try {
         const { KeyHelper } = signalComponents;
         const registrationId = await KeyHelper.generateRegistrationId();
@@ -154,6 +202,8 @@ export function useSignal() {
     generateIdentityKeyPair,
     generateRegistrationId,
     store,
-    isInitialized: !!signalComponents
+    isInitialized: !!signalComponents,
+    isInitializing,
+    error
   };
 }
