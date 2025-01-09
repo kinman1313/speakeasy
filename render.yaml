@@ -6,7 +6,11 @@ services:
     plan: free
     region: ohio
     branch: main
-    buildCommand: cd client && npm install && npm run build
+    buildCommand: |
+      npm install -g cross-env
+      cd client && npm install
+      npm rebuild @signalapp/libsignal-client --build-from-source
+      npm run build
     startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
@@ -29,7 +33,11 @@ services:
     plan: free
     region: ohio
     branch: main
-    buildCommand: cd server && npm install && npm run build
+    buildCommand: |
+      npm install -g cross-env
+      cd server && npm install
+      npm rebuild @signalapp/libsignal-client --build-from-source
+      npm run build
     startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
