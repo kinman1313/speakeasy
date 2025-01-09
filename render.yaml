@@ -22,7 +22,7 @@ services:
     name: speakeasy-server
     env: node
     plan: free
-    buildCommand: cd server && npm install && npm run clean && npm run build
+    buildCommand: cd server && npm install && npm run build
     startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
