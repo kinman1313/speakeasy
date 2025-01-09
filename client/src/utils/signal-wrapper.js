@@ -1,5 +1,5 @@
 // This is a wrapper for the Signal Protocol library to ensure it works within Create React App's src directory
-import SignalClient from '@signalapp/libsignal-client';
+import * as SignalClient from '@signalapp/libsignal-client';
 
 // Singleton instance to manage Signal state
 class SignalWrapper {
@@ -77,7 +77,9 @@ class SignalWrapper {
 
     async _initializeSignalClient() {
         try {
-            return await (typeof SignalClient === 'function' ? SignalClient() : Promise.resolve(SignalClient));
+            // Handle both ESM and CommonJS module formats
+            const SignalModule = SignalClient.default || SignalClient;
+            return typeof SignalModule === 'function' ? await SignalModule() : SignalModule;
         } catch (error) {
             console.error('Failed to initialize Signal client:', error);
             this.signalInstance = null;

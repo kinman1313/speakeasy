@@ -16,6 +16,7 @@ module.exports = function override(config, env) {
             process: require.resolve('process/browser.js'),
             path: require.resolve('path-browserify'),
             fs: false,
+            util: require.resolve('util/'),
         },
         alias: {
             '@signalapp/libsignal-client': path.resolve(__dirname, 'src/utils/signal-wrapper.js')
