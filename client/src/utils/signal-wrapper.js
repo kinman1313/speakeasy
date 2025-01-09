@@ -1,5 +1,5 @@
 // This is a wrapper for the Signal Protocol library to ensure it works within Create React App's src directory
-import * as SignalClient from '@signalapp/libsignal-client';
+import SignalClient from '@signalapp/libsignal-client';
 
 // Initialize Signal Protocol components
 let initialized = false;
@@ -8,19 +8,19 @@ let signalComponents = null;
 const initializeSignal = async () => {
     if (!initialized) {
         try {
+            // Initialize the Signal client
+            const signal = await SignalClient();
+
             signalComponents = {
-                PublicKey: SignalClient.PublicKey,
-                PrivateKey: SignalClient.PrivateKey,
-                PreKeyBundle: SignalClient.PreKeyBundle,
-                PreKeyRecord: SignalClient.PreKeyRecord,
-                SignedPreKeyRecord: SignalClient.SignedPreKeyRecord,
-                SessionRecord: SignalClient.SessionRecord,
-                SessionBuilder: SignalClient.SessionBuilder,
-                SessionCipher: SignalClient.SessionCipher,
-                SignalProtocolAddress: SignalClient.SignalProtocolAddress,
-                PreKeySignalMessage: SignalClient.PreKeySignalMessage,
-                SignalMessage: SignalClient.SignalMessage,
-                KeyHelper: SignalClient.KeyHelper
+                KeyHelper: {
+                    generateIdentityKeyPair: signal.KeyHelper.generateIdentityKeyPair,
+                    generateRegistrationId: signal.KeyHelper.generateRegistrationId,
+                    generatePreKey: signal.KeyHelper.generatePreKey,
+                    generateSignedPreKey: signal.KeyHelper.generateSignedPreKey
+                },
+                SessionBuilder: signal.SessionBuilder,
+                SessionCipher: signal.SessionCipher,
+                SignalProtocolAddress: signal.SignalProtocolAddress
             };
 
             initialized = true;
