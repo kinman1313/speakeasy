@@ -3,12 +3,21 @@ import WebFont from 'webfontloader';
 export const loadFonts = () => {
     WebFont.load({
         google: {
-            families: ['Roboto:300,400,500,700', 'Material Icons']
+            families: [
+                'Roboto:300,400,500,700',
+                'Material Icons',
+                'Inter:300,400,500,600,700'
+            ]
         },
-        custom: {
-            families: ['Your-Custom-Font'],
-            urls: ['/fonts/custom-font.css']
+        timeout: 2000,
+        active: () => {
+            document.documentElement.style.visibility = 'visible';
         },
-        timeout: 2000
+        inactive: () => {
+            document.documentElement.style.visibility = 'visible';
+        },
+        loading: () => {
+            document.documentElement.style.visibility = 'hidden';
+        }
     });
 }; 
