@@ -5,11 +5,7 @@ services:
     env: node
     plan: free
     branch: main
-    buildCommand: |
-      cd client
-      npm install
-      npm install --save-dev webpack webpack-cli webpack-dev-server @babel/core babel-loader
-      npx cross-env GENERATE_SOURCEMAP=false npx react-app-rewired build
+    buildCommand: cd client && npm install && npm run build
     startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
@@ -44,5 +40,4 @@ services:
         sync: false
       - key: CLIENT_URL
         value: https://speakeasy-client.onrender.com
-      - key: SIGNAL_SERVER_KEY
         sync: false

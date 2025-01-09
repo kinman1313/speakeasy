@@ -1,123 +1,65 @@
-import { useState, useEffect, useRef } from 'react';
-import {
-    Box,
-    Container,
-    Paper,
-    TextField,
-    Button,
-    Typography,
-    List,
-    ListItem,
-    ListItemText,
-    Divider,
-    CircularProgress
-} from '@mui/material';
-import { Send as SendIcon } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Container, Paper, TextField, IconButton, Typography, CircularProgress } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
-import { useSignal } from '../../hooks/useSignal';
-import { useSnackbar } from '../../hooks/useSnackbar';
+import { useTheme } from '../../contexts/ThemeContext';
+import MessageList from '../../components/chat/MessageList';
+import ChatHeader from '../../components/chat/ChatHeader';
 
-function Chat() {
-    const { user } = useAuth();
-    const { socket, isConnected } = useSocket();
-    const { encryptMessage, decryptMessage } = useSignal();
-    const { showSnackbar } = useSnackbar();
+export default function Chat() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const socket = useSocket();
+    const { messageColor } = useTheme();
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        socket.on('message', handleNewMessage);
+
+        return () => {
+            socket.off('message', handleNewMessage);
+        };
+    }, [user, socket, navigate]);
+
+    const handleNewMessage = (msg) => {
+        setMessages(prev => [...prev, msg]);
+        scrollToBottom();
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    useEffect(() => {
-        if (!socket) return;
-
-        // Load recent messages
-        socket.emit('getRecentMessages', {}, async (response) => {
-            if (response.success) {
-                try {
-                    // Decrypt messages
-                    const decryptedMessages = await Promise.all(
-                        response.messages.map(async (msg) => {
-                            if (msg.userId !== user.id) {
-                                const decrypted = await decryptMessage(msg.userId, msg.content);
-                                return { ...msg, content: decrypted };
-                            }
-                            return msg;
-                        })
-                    );
-                    setMessages(decryptedMessages);
-                } catch (error) {
-                    console.error('Error decrypting messages:', error);
-                    showSnackbar('Error loading messages', 'error');
-                }
-            }
-            setIsLoading(false);
-        });
-
-        // Listen for new messages
-        socket.on('newMessage', async (message) => {
-            try {
-                if (message.userId !== user.id) {
-                    const decrypted = await decryptMessage(message.userId, message.content);
-                    message.content = decrypted;
-                }
-                setMessages((prev) => [...prev, message]);
-            } catch (error) {
-                console.error('Error decrypting message:', error);
-                showSnackbar('Error decrypting message', 'error');
-            }
-        });
-
-        return () => {
-            socket.off('newMessage');
-        };
-    }, [socket, user.id, decryptMessage, showSnackbar]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!message.trim() || !socket) return;
+        if (!message.trim()) return;
 
         try {
-            // Encrypt message for each recipient
-            const encryptedContent = await encryptMessage('broadcast', message.trim());
+            setLoading(true);
+            const newMessage = {
+                content: message.trim(),
+                sender: user.id,
+                timestamp: new Date().toISOString()
+            };
 
-            socket.emit('sendMessage', { content: encryptedContent }, (response) => {
-                if (response.success) {
-                    setMessage('');
-                } else {
-                    showSnackbar('Failed to send message', 'error');
-                }
-            });
+            socket.emit('message', newMessage);
+            setMessage('');
         } catch (error) {
-            console.error('Error sending message:', error);
-            showSnackbar('Error sending message', 'error');
+            console.error('Failed to send message:', error);
+        } finally {
+            setLoading(false);
         }
     };
-
-    if (!isConnected) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh'
-                }}
-            >
-                <Typography variant="h6" color="textSecondary">
-                    Connecting to chat...
-                </Typography>
-            </Box>
-        );
-    }
 
     return (
         <Container maxWidth="md" sx={{ height: '100vh', py: 2 }}>
@@ -125,100 +67,67 @@ function Chat() {
                 elevation={3}
                 sx={{
                     height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column'
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    bgcolor: 'background.paper',
+                    overflow: 'hidden'
                 }}
             >
-                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                    <Typography variant="h6">Secure Chat Room</Typography>
-                    <Typography variant="caption" color="textSecondary">
-                        End-to-end encrypted with Signal Protocol
-                    </Typography>
-                </Box>
+                <ChatHeader />
 
-                <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-                    {isLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <List>
-                            {messages.map((msg, index) => (
-                                <Box key={msg.id || index}>
-                                    <ListItem
-                                        sx={{
-                                            flexDirection: 'column',
-                                            alignItems: msg.userId === user.id ? 'flex-end' : 'flex-start'
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="caption"
-                                            color="textSecondary"
-                                            sx={{ mb: 0.5 }}
-                                        >
-                                            {msg.userId === user.id ? 'You' : msg.username}
-                                        </Typography>
-                                        <Paper
-                                            elevation={1}
-                                            sx={{
-                                                p: 1,
-                                                bgcolor: msg.userId === user.id ? 'primary.main' : 'grey.100',
-                                                color: msg.userId === user.id ? 'white' : 'inherit',
-                                                maxWidth: '70%'
-                                            }}
-                                        >
-                                            <Typography variant="body1">{msg.content}</Typography>
-                                        </Paper>
-                                        <Typography
-                                            variant="caption"
-                                            color="textSecondary"
-                                            sx={{ mt: 0.5 }}
-                                        >
-                                            {new Date(msg.timestamp).toLocaleTimeString()}
-                                        </Typography>
-                                    </ListItem>
-                                    {index < messages.length - 1 && (
-                                        <Divider variant="middle" sx={{ my: 1 }} />
-                                    )}
-                                </Box>
-                            ))}
-                            <div ref={messagesEndRef} />
-                        </List>
-                    )}
+                <Box sx={{
+                    flexGrow: 1,
+                    overflow: 'auto',
+                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <MessageList
+                        messages={messages}
+                        currentUser={user}
+                        messageColor={messageColor}
+                    />
+                    <div ref={messagesEndRef} />
                 </Box>
 
                 <Box
-                    component="form"
+                    component="form" 
                     onSubmit={handleSubmit}
                     sx={{
-                        p: 2,
+                        p: 2, 
+                        backgroundColor: 'background.paper',
                         borderTop: 1,
-                        borderColor: 'divider',
-                        bgcolor: 'background.default'
+                        borderColor: 'divider'
                     }}
                 >
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <TextField
                             fullWidth
-                            size="small"
-                            placeholder="Type a message..."
+                            variant="outlined"
+                            placeholder="Type a message"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            variant="outlined"
+                            disabled={loading}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2
+                                }
+                            }}
                         />
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            endIcon={<SendIcon />}
-                            disabled={!message.trim()}
+                        <IconButton
+                            type="submit" 
+                            color="primary"
+                            disabled={loading || !message.trim()}
+                            sx={{
+                                p: '10px',
+                                borderRadius: 2
+                            }}
                         >
-                            Send
-                        </Button>
+                            {loading ? <CircularProgress size={24} /> : <SendIcon />}
+                        </IconButton>
                     </Box>
                 </Box>
             </Paper>
         </Container>
     );
-}
-
-export default Chat; 
+} 
