@@ -48,20 +48,59 @@ export const ThemeProvider = ({ children }) => {
         message: messageColor,
       },
       text: {
-        primary: '#FFFFFF',
-        secondary: alpha('#FFFFFF', 0.7),
+        primary: '#F8F9FA',
+        secondary: alpha('#F8F9FA', 0.7),
       },
     },
     typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, sans-serif',
       h1: {
-        fontWeight: 600,
+        fontWeight: 700,
+        letterSpacing: '-0.02em',
+        background: 'linear-gradient(45deg, #00E5FF 30%, #0288D1 90%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
       },
       h2: {
-        fontWeight: 600,
+        fontWeight: 700,
+        letterSpacing: '-0.01em',
       },
       h3: {
         fontWeight: 600,
+        letterSpacing: '-0.01em',
+      },
+      h4: {
+        fontWeight: 600,
+        letterSpacing: '-0.01em',
+      },
+      h5: {
+        fontWeight: 600,
+      },
+      h6: {
+        fontWeight: 600,
+      },
+      subtitle1: {
+        fontWeight: 500,
+        letterSpacing: '0.01em',
+      },
+      subtitle2: {
+        fontWeight: 500,
+        letterSpacing: '0.01em',
+      },
+      body1: {
+        fontWeight: 400,
+        letterSpacing: '0.01em',
+        lineHeight: 1.7,
+      },
+      body2: {
+        fontWeight: 400,
+        letterSpacing: '0.01em',
+        lineHeight: 1.7,
+      },
+      button: {
+        fontWeight: 600,
+        letterSpacing: '0.02em',
+        textTransform: 'none',
       },
     },
     components: {
@@ -73,11 +112,14 @@ export const ThemeProvider = ({ children }) => {
             minHeight: '100vh',
             backgroundColor: '#0A1929',
             backgroundImage:
-              'radial-gradient(at 0% 0%, rgba(0, 229, 255, 0.1) 0px, transparent 50%), ' +
-              'radial-gradient(at 100% 0%, rgba(2, 136, 209, 0.1) 0px, transparent 50%), ' +
-              'radial-gradient(at 100% 100%, rgba(0, 229, 255, 0.1) 0px, transparent 50%), ' +
-              'radial-gradient(at 0% 100%, rgba(2, 136, 209, 0.1) 0px, transparent 50%)',
-            color: '#FFFFFF',
+              'radial-gradient(at 0% 0%, rgba(0, 229, 255, 0.15) 0px, transparent 50%), ' +
+              'radial-gradient(at 100% 0%, rgba(2, 136, 209, 0.15) 0px, transparent 50%), ' +
+              'radial-gradient(at 100% 100%, rgba(0, 229, 255, 0.15) 0px, transparent 50%), ' +
+              'radial-gradient(at 0% 100%, rgba(2, 136, 209, 0.15) 0px, transparent 50%)',
+            color: '#F8F9FA',
+            fontFeatureSettings: '"cv02", "cv03", "cv04", "cv11"',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
             '&::-webkit-scrollbar': {
               width: '8px',
               height: '8px',
@@ -117,6 +159,8 @@ export const ThemeProvider = ({ children }) => {
             textTransform: 'none',
             borderRadius: 12,
             padding: '8px 16px',
+            fontWeight: 600,
+            letterSpacing: '0.02em',
           },
         },
       },
