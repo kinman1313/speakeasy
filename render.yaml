@@ -1,37 +1,39 @@
 services:
   # Frontend Web Service
   - type: web
-    name: speakeasy-client
+    name: thespeakeasy-client
     env: node
+    nodeVersion: 18.x
     plan: free
     branch: main
     buildCommand: cd client && npm install && npm run build
     startCommand: cd client && npm run serve
     envVars:
       - key: NODE_ENV
-        value: production
+        sync: false
       - key: PORT
-        value: 3000
+        sync: false
       - key: REACT_APP_API_URL
-        value: https://speakeasy-server-7lyh.onrender.com
+        sync: false
       - key: REACT_APP_SOCKET_URL
-        value: wss://speakeasy-server-7lyh.onrender.com
+        sync: false
       - key: REACT_APP_SIGNAL_SERVER_KEY
         sync: false
 
   # Backend API Service
   - type: web
-    name: speakeasy-server
+    name: thespeakeasy-server
     env: node
+    nodeVersion: 18.x
     plan: free
     branch: main
     buildCommand: cd server && npm install && npm run build
     startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
-        value: production
+        sync: false
       - key: PORT
-        value: 8000
+        sync: false
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
@@ -39,5 +41,4 @@ services:
       - key: GIPHY_API_KEY
         sync: false
       - key: CLIENT_URL
-        value: https://speakeasy-client.onrender.com
         sync: false

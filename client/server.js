@@ -11,7 +11,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            connectSrc: ["'self'", "https://speakeasy-server-7lyh.onrender.com", "wss://speakeasy-server-7lyh.onrender.com"],
+            connectSrc: ["'self'", "https://lies-server-9ayj.onrender.com", "wss://lies-server-9ayj.onrender.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],

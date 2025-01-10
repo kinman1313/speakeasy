@@ -1,7 +1,7 @@
 {
-    "name": "speakeasy-server",
+    "name": "thespeakeasy-server",
     "version": "1.0.0",
-    "description": "Speakeasy Chat Application Server",
+    "description": "TheSpeakEasy Chat Application Server",
     "main": "src/index.js",
     "type": "module",
     "engines": {

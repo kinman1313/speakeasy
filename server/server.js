@@ -13,7 +13,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
+        origin: process.env.CLIENT_URL || "https://lies-client.onrender.com",
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -25,7 +25,7 @@ messageCleanupService.start();
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || "https://speakeasy-client.onrender.com",
+    origin: process.env.CLIENT_URL || "https://lies-client.onrender.com",
     credentials: true
 }));
 app.use(express.json());
